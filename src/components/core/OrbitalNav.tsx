@@ -1,11 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Briefcase, Film, Palette, Globe, Sparkles, Mail } from 'lucide-react';
+import { Briefcase, Film, Palette, Globe, Sparkles, Mail, MousePointerClick } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useSound } from '@/hooks/useSound';
 import gsap from 'gsap';
 import type { OrbitNodeId } from '@/types/content';
 
-const ORBIT_RADIUS = 200;
+// Responsive orbit sizing
+function useOrbitalSize() {
+  const [size, setSize] = useState({ radius: 200, nodeSize: 56 });
+
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const min = Math.min(w, h);
+
+      if (min < 480) {
+        setSize({ radius: 110, nodeSize: 42 });
+      } else if (min < 640) {
+        setSize({ radius: 130, nodeSize: 46 });
+      } else if (min < 768) {
+        setSize({ radius: 155, nodeSize: 50 });
+      } else if (min < 1024) {
+        setSize({ radius: 175, nodeSize: 52 });
+      } else {
+        setSize({ radius: 200, nodeSize: 56 });
+      }
+    };
+
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  return size;
+}
+
 const NODE_COUNT = 6;
 
 const nodes: { id: OrbitNodeId; label: string; Icon: React.ComponentType<{ className?: string; size?: number; strokeWidth?: number; style?: React.CSSProperties }> }[] = [
@@ -21,6 +51,7 @@ export default function OrbitalNav() {
   const ringRef = useRef<HTMLDivElement>(null);
   const [rotation, setRotation] = useState(-90); // Start with first node at top
   const [hoveredNode, setHoveredNode] = useState<OrbitNodeId | null>(null);
+  const [showHint, setShowHint] = useState(true);
   const activeNode = useStore((s) => s.activeNode);
   const setActiveNode = useStore((s) => s.setActiveNode);
   const reducedMotion = useStore((s) => s.reducedMotion);
@@ -28,6 +59,18 @@ export default function OrbitalNav() {
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, rotation: 0 });
   const autoRotateRef = useRef<gsap.core.Tween | null>(null);
+  const { radius: ORBIT_RADIUS, nodeSize: NODE_SIZE } = useOrbitalSize();
+
+  // Hide hint after first interaction
+  useEffect(() => {
+    if (activeNode) setShowHint(false);
+  }, [activeNode]);
+
+  // Auto-hide hint after 8 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowHint(false), 8000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Get position for a node at given angle
   const getNodePosition = useCallback((angleDeg: number) => {
@@ -36,7 +79,7 @@ export default function OrbitalNav() {
       x: Math.cos(angleRad) * ORBIT_RADIUS,
       y: Math.sin(angleRad) * ORBIT_RADIUS,
     };
-  }, []);
+  }, [ORBIT_RADIUS]);
 
   // Auto-rotation
   useEffect(() => {
@@ -159,6 +202,9 @@ export default function OrbitalNav() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeNode, rotation, handleNodeClick, setActiveNode]);
 
+  const iconSize = NODE_SIZE < 46 ? 16 : NODE_SIZE < 52 ? 18 : 22;
+  const labelFontSize = NODE_SIZE < 46 ? 8 : NODE_SIZE < 52 ? 9 : 11;
+
   return (
     <div
       className="relative select-none"
@@ -218,10 +264,10 @@ export default function OrbitalNav() {
             role="radio"
             aria-checked={isActive}
             aria-label={`Open ${node.label}`}
-            className="absolute flex items-center justify-center rounded-full transition-all duration-300 z-10"
+            className="absolute flex items-center justify-center rounded-full transition-all duration-300 z-10 orbit-node-btn"
             style={{
-              width: 56,
-              height: 56,
+              width: NODE_SIZE,
+              height: NODE_SIZE,
               top: '50%',
               left: '50%',
               transform: `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px) scale(${isActive ? 1.2 : isHovered ? 1.15 : 1})`,
@@ -242,13 +288,47 @@ export default function OrbitalNav() {
             }}
             onMouseLeave={() => setHoveredNode(null)}
           >
-            <Icon size={22} strokeWidth={1.8} />
+            <Icon size={iconSize} strokeWidth={1.8} />
+
+            {/* Pulsing ring hint */}
+            {showHint && !isActive && (
+              <span
+                className="absolute inset-0 rounded-full pointer-events-none"
+                style={{
+                  border: '2px solid rgba(0, 200, 83, 0.4)',
+                  animation: 'orbit-hint-pulse 2s ease-in-out infinite',
+                  animationDelay: `${index * 0.3}s`,
+                }}
+              />
+            )}
+
+            {/* Hover tooltip: "Click to explore" */}
+            {isHovered && (
+              <span
+                className="absolute font-mono text-[9px] uppercase whitespace-nowrap pointer-events-none"
+                style={{
+                  top: -22,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  color: '#00C853',
+                  letterSpacing: '0.06em',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  animation: 'fade-in-up 0.2s ease-out',
+                }}
+              >
+                Click to explore
+              </span>
+            )}
 
             {/* Node Label */}
             <span
-              className="absolute font-mono text-xs uppercase whitespace-nowrap transition-opacity duration-300"
+              className="absolute font-mono uppercase whitespace-nowrap transition-opacity duration-300"
               style={{
-                top: 64,
+                fontSize: labelFontSize,
+                top: NODE_SIZE + 8,
                 left: '50%',
                 transform: 'translateX(-50%)',
                 opacity: isActive || isHovered ? 1 : 0.6,
@@ -261,6 +341,29 @@ export default function OrbitalNav() {
           </button>
         );
       })}
+
+      {/* Mobile tap instruction */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 lg:hidden"
+        style={{
+          bottom: -8,
+          opacity: showHint ? 1 : 0,
+          transition: 'opacity 0.6s ease',
+          pointerEvents: 'none',
+        }}
+      >
+        <MousePointerClick size={14} style={{ color: '#00C853' }} />
+        <span
+          className="font-mono uppercase whitespace-nowrap"
+          style={{
+            fontSize: 9,
+            color: '#5A7A6A',
+            letterSpacing: '0.1em',
+          }}
+        >
+          Tap icons to explore
+        </span>
+      </div>
     </div>
   );
 }

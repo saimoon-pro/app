@@ -1,10 +1,41 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import gsap from 'gsap';
+
+function useProfileSize() {
+  const [size, setSize] = useState(320);
+
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const min = Math.min(w, h);
+
+      if (min < 480) {
+        setSize(180);
+      } else if (min < 640) {
+        setSize(210);
+      } else if (min < 768) {
+        setSize(250);
+      } else if (min < 1024) {
+        setSize(280);
+      } else {
+        setSize(320);
+      }
+    };
+
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  return size;
+}
 
 export default function ProfileMachine() {
   const containerRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useStore((s) => s.reducedMotion);
+  const profileSize = useProfileSize();
 
   useEffect(() => {
     if (!containerRef.current || reducedMotion) return;
@@ -20,13 +51,19 @@ export default function ProfileMachine() {
     return () => { tl.kill(); };
   }, [reducedMotion]);
 
+  // Inset ratios relative to size
+  const innerRingInset = Math.round(profileSize * 0.0625);  // 20/320
+  const decorRingInset = Math.round(profileSize * 0.125);   // 40/320
+  const imageInset = Math.round(profileSize * 0.25);         // 80/320
+  const waveSize = Math.round(profileSize * 0.3125);         // 100/320
+
   return (
     <div
       ref={containerRef}
       className="relative"
       style={{
-        width: 320,
-        height: 320,
+        width: profileSize,
+        height: profileSize,
         opacity: reducedMotion ? 1 : 0,
       }}
     >
@@ -37,8 +74,8 @@ export default function ProfileMachine() {
             key={i}
             className="absolute rounded-full"
             style={{
-              width: 100,
-              height: 100,
+              width: waveSize,
+              height: waveSize,
               border: '1px solid rgba(0, 229, 255, 0.3)',
               animation: reducedMotion ? 'none' : `radio-wave 4s ease-out ${delay}s infinite`,
               opacity: reducedMotion ? 0.1 : undefined,
@@ -70,7 +107,7 @@ export default function ProfileMachine() {
       <div
         className="absolute rounded-full"
         style={{
-          inset: 20,
+          inset: innerRingInset,
           border: '2px solid transparent',
           borderTopColor: 'rgba(0, 229, 255, 0.4)',
           borderBottomColor: 'rgba(0, 229, 255, 0.15)',
@@ -82,7 +119,7 @@ export default function ProfileMachine() {
       <div
         className="absolute rounded-full"
         style={{
-          inset: 40,
+          inset: decorRingInset,
           border: '1px solid rgba(0, 200, 83, 0.15)',
           background: 'radial-gradient(circle, rgba(0, 200, 83, 0.06) 0%, transparent 70%)',
         }}
@@ -92,7 +129,7 @@ export default function ProfileMachine() {
       <div
         className="absolute rounded-full overflow-hidden"
         style={{
-          inset: 80,
+          inset: imageInset,
           border: '2px solid rgba(0, 200, 83, 0.3)',
           boxShadow: '0 0 40px rgba(0, 200, 83, 0.15), inset 0 0 30px rgba(0, 200, 83, 0.08)',
           animation: reducedMotion ? 'none' : 'profile-breathe 4s ease-in-out infinite',
@@ -105,19 +142,6 @@ export default function ProfileMachine() {
           loading="eager"
         />
       </div>
-
-      {/* Center Pulsing Dot */}
-      <div
-        className="absolute top-1/2 left-1/2 rounded-full"
-        style={{
-          width: 8,
-          height: 8,
-          background: '#00C853',
-          transform: 'translate(-50%, -50%)',
-          boxShadow: '0 0 12px rgba(0, 200, 83, 0.6)',
-          animation: reducedMotion ? 'none' : 'pulse-glow 2s ease-in-out infinite',
-        }}
-      />
     </div>
   );
 }

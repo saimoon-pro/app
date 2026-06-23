@@ -225,3 +225,57 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Orbit hint pulse animation */
+@keyframes orbit-hint-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* Orbit node button subtle bob */
+.orbit-node-btn {
+  will-change: transform;
+}
+
+.orbit-node-btn:hover {
+  filter: drop-shadow(0 0 8px rgba(0, 200, 83, 0.3));
+}
+
+/* Content Panel Responsive */
+.content-panel-responsive {
+  width: 100vw;
+  min-width: unset;
+  max-width: unset;
+}
+
+@media (min-width: 640px) {
+  .content-panel-responsive {
+    width: 80vw;
+    max-width: 600px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .content-panel-responsive {
+    width: 55vw;
+    min-width: 400px;
+    max-width: 800px;
+  }
+}
+
+/* Mobile layout scrollbar */
+.mobile-layout-scroll::-webkit-scrollbar {
+  width: 0;
+  display: none;
+}
+
+.mobile-layout-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
