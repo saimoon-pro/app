@@ -36,6 +36,10 @@ interface AppState {
   // Panel animation state
   panelAnimating: boolean;
   setPanelAnimating: (animating: boolean) => void;
+
+  // Back button override hook
+  backOverride: (() => boolean) | null;
+  setBackOverride: (callback: (() => boolean) | null) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -67,4 +71,7 @@ export const useStore = create<AppState>((set) => ({
 
   panelAnimating: false,
   setPanelAnimating: (animating) => set({ panelAnimating: animating }),
+
+  backOverride: null,
+  setBackOverride: (callback) => set({ backOverride: callback }),
 }));

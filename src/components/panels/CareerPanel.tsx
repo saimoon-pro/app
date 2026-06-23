@@ -1,40 +1,52 @@
 import { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Award, Briefcase, Star, TrendingUp } from 'lucide-react';
-
-gsap.registerPlugin(ScrollTrigger);
+import { Award, Briefcase, Star, TrendingUp, Zap, Target, Code, Play } from 'lucide-react';
 
 const timelineData = [
-  { role: 'Senior Video Editor', org: 'Freelance', duration: '2021 – Present', impact: 'Edited 340+ commercial videos for D2C brands across fashion, tech, and lifestyle' },
-  { role: 'Motion Graphics Designer', org: 'Upwork / Remote', duration: '2020 – 2023', impact: 'Created 200+ motion graphics pieces including title sequences, social ads, and explainer videos' },
-  { role: 'UI/UX Designer', org: 'Multiple Clients', duration: '2019 – 2022', impact: 'Designed interfaces for 15+ web and mobile applications, improving conversion rates by avg 35%' },
-  { role: 'Web Developer', org: 'Freelance', duration: '2018 – Present', impact: 'Built 25+ production websites using React, Next.js, and modern animation stacks' },
-  { role: 'AI Automation Founder', org: 'ORBIT Labs', duration: '2023 – Present', impact: 'Developing AI-powered creative tools and automation workflows for content creators' },
+  { 
+    role: 'Senior Video Editor & Motion Designer', 
+    org: 'Global D2C Brands & Upwork', 
+    duration: '2020 – Present', 
+    impact: 'Engineered 540+ high-converting commercial & motion graphics pieces. Drove engagement across fashion, tech, and lifestyle sectors with top 3% global freelancer rating.',
+    icon: Play
+  },
+  { 
+    role: 'UI/UX Designer & Web Developer', 
+    org: 'Freelance / Remote', 
+    duration: '2019 – Present', 
+    impact: 'Architected and deployed 40+ production-grade web applications. Elevated user experiences with React, Next.js, and advanced GSAP/Three.js animations, boosting conversion rates by an average of 35%.',
+    icon: Code
+  },
+  { 
+    role: 'AI Automation Specialist & Founder', 
+    org: 'ORBIT Labs', 
+    duration: '2023 – Present', 
+    impact: 'Pioneering AI-powered creative workflows. Designing intelligent systems and automation tools that drastically reduce production timelines for modern creators.',
+    icon: Zap
+  },
 ];
 
 const skillsData = [
-  { name: 'Video Editing', percentage: 95 },
-  { name: 'Motion Graphics', percentage: 90 },
-  { name: 'UI/UX Design', percentage: 88 },
-  { name: 'Web Development', percentage: 85 },
-  { name: 'AI/Automation', percentage: 78 },
+  { name: 'Video Editing', percentage: 95, color: '#1976d2' },
+  { name: 'Motion Graphics', percentage: 92, color: '#42a5f5' },
+  { name: 'UI/UX Design', percentage: 88, color: '#00C853' },
+  { name: 'Web Development', percentage: 90, color: '#FFB36B' },
+  { name: 'AI Automation', percentage: 85, color: '#ab47bc' },
+];
+
+const stats = [
+  { value: '5+', label: 'Years Experience' },
+  { value: '500+', label: 'Projects Delivered' },
+  { value: '100%', label: 'Job Success Score' },
+  { value: 'Top 3%', label: 'Global Talent' },
 ];
 
 const certsData = [
-  { id: '1', title: 'Top Rated Plus — Upwork', subtitle: 'Top 3% of freelancers globally', issuer: 'Upwork' },
-  { id: '2', title: 'Adobe Certified Professional', subtitle: 'Premiere Pro Certification', issuer: 'Adobe' },
-  { id: '3', title: 'Figma Advanced Certification', subtitle: 'Advanced prototyping and systems', issuer: 'Figma' },
-  { id: '4', title: '100% Job Success Score', subtitle: '4+ years of excellence', issuer: 'Upwork' },
+  { id: '1', title: 'Top Rated Plus', subtitle: 'Upwork Global Platform', issuer: 'Upwork' },
+  { id: '2', title: 'Certified Professional', subtitle: 'Adobe Premiere Pro', issuer: 'Adobe' },
+  { id: '3', title: 'Advanced Systems', subtitle: 'Figma UI/UX Design', issuer: 'Figma' },
 ];
 
-const featuredProjects = [
-  { title: 'Brand Launch Campaign — Luminex', category: 'Video Editing', link: 'video' },
-  { title: 'E-commerce Dashboard Redesign', category: 'UI/UX Design', link: 'design' },
-  { title: 'SaaS Landing Page — FlowState', category: 'Web Development', link: 'web' },
-];
-
-function SkillRing({ name, percentage, delay }: { name: string; percentage: number; delay: number }) {
+function SkillRing({ name, percentage, color, delay }: { name: string; percentage: number; color: string; delay: number }) {
   const ringRef = useRef<SVGCircleElement>(null);
   const [animated, setAnimated] = useState(false);
   const radius = 45;
@@ -47,34 +59,34 @@ function SkillRing({ name, percentage, delay }: { name: string; percentage: numb
   }, [delay]);
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-3 group">
       <div className="relative" style={{ width: 110, height: 110 }}>
         <svg width="110" height="110" viewBox="0 0 110 110" className="-rotate-90">
-          <circle
-            cx="55" cy="55" r={radius}
-            fill="none"
-            stroke="rgba(0, 200, 83, 0.1)"
-            strokeWidth="6"
-          />
+          {/* Background circle */}
+          <circle cx="55" cy="55" r={radius} fill="none" stroke="rgba(0, 0, 0, 0.05)" strokeWidth="6" />
+          {/* Animated circle */}
           <circle
             ref={ringRef}
             cx="55" cy="55" r={radius}
             fill="none"
-            stroke="#00C853"
+            stroke={color}
             strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={animated ? offset : circumference}
-            style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            style={{ 
+              transition: 'stroke-dashoffset 1.5s cubic-bezier(0.22, 1, 0.36, 1)',
+              filter: `drop-shadow(0 0 4px ${color}20)`
+            }}
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-mono text-lg font-semibold" style={{ color: '#0A1A0F' }}>
-            {percentage}%
+        <div className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+          <span className="font-display text-xl font-bold" style={{ color: '#0A1A0F' }}>
+            {percentage}<span className="text-xs" style={{ color: '#5A7A6A' }}>%</span>
           </span>
         </div>
       </div>
-      <span className="font-mono text-xs uppercase tracking-wider" style={{ color: '#5A7A6A' }}>
+      <span className="font-mono text-[10px] uppercase tracking-widest font-semibold text-center max-w-[100px]" style={{ color: '#5A7A6A' }}>
         {name}
       </span>
     </div>
@@ -82,142 +94,108 @@ function SkillRing({ name, percentage, delay }: { name: string; percentage: numb
 }
 
 export default function CareerPanel() {
-  const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  useEffect(() => {
-    const triggers: ScrollTrigger[] = [];
-    sectionRefs.current.forEach((el) => {
-      if (!el) return;
-      const st = ScrollTrigger.create({
-        trigger: el,
-        start: 'top 85%',
-        onEnter: () => {
-          gsap.fromTo(el, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out' });
-        },
-        once: true,
-      });
-      triggers.push(st);
-    });
-
-    return () => triggers.forEach(st => st.kill());
-  }, []);
-
   return (
-    <div className="flex flex-col gap-12">
-      {/* Origin Story */}
-      <div ref={el => { sectionRefs.current[0] = el; }} style={{ opacity: 0 }}>
-        <p className="text-base leading-relaxed" style={{ color: '#5A7A6A', lineHeight: 1.7 }}>
-          Five disciplines, one creative mind. I started with a love for visual storytelling and built outward —
-          from cutting footage to designing interfaces, from animating pixels to engineering intelligent systems.
-          Every skill I add serves the same mission: <span style={{ color: '#0A1A0F', fontWeight: 500 }}>creating experiences that move people.</span>
+    <div className="flex flex-col gap-16 pb-12">
+      {/* Hero Section */}
+      <div className="flex flex-col gap-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full w-fit" style={{ background: 'rgba(25, 118, 210, 0.08)', border: '1px solid rgba(25, 118, 210, 0.15)' }}>
+          <Target size={14} style={{ color: '#1976d2' }} />
+          <span className="font-mono text-xs uppercase tracking-wider font-semibold" style={{ color: '#1976d2' }}>Multidisciplinary Expert</span>
+        </div>
+        <h2 className="text-3xl md:text-4xl font-display font-bold leading-tight" style={{ color: '#0A1A0F' }}>
+          Crafting Digital Experiences <br/>
+          <span style={{ color: '#1976d2' }}>Across Five Dimensions.</span>
+        </h2>
+        <p className="text-base md:text-lg leading-relaxed max-w-2xl" style={{ color: '#5A7A6A' }}>
+          I am Muhammad Saimoon Hassan. With an extensive background ranging from high-end video production to advanced web engineering and AI automation, I bridge the gap between creative vision and technical execution.
         </p>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          {stats.map((stat, i) => (
+            <div key={i} className="flex flex-col gap-1 p-4 rounded-xl border transition-all hover:-translate-y-1 hover:shadow-md" style={{ background: 'rgba(25, 118, 210, 0.03)', borderColor: 'rgba(25, 118, 210, 0.1)' }}>
+              <span className="text-2xl md:text-3xl font-display font-bold" style={{ color: '#1976d2' }}>{stat.value}</span>
+              <span className="text-[10px] font-mono uppercase tracking-wider font-medium" style={{ color: '#5A7A6A' }}>{stat.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Experience Timeline */}
-      <div ref={el => { sectionRefs.current[1] = el; }} style={{ opacity: 0 }}>
-        <h3 className="font-display text-lg font-semibold mb-6 flex items-center gap-2" style={{ color: '#0A1A0F' }}>
-          <Briefcase size={18} style={{ color: '#00C853' }} />
-          Experience
+      <div>
+        <h3 className="font-display text-xl font-bold mb-8 flex items-center gap-3" style={{ color: '#0A1A0F' }}>
+          <Briefcase size={22} style={{ color: '#1976d2' }} />
+          Professional Trajectory
         </h3>
-        <div className="flex flex-col gap-0">
-          {timelineData.map((item, i) => (
-            <div
-              key={i}
-              className="relative pl-8 pb-8"
-              style={{
-                borderLeft: i < timelineData.length - 1 ? '1px solid rgba(0, 200, 83, 0.15)' : 'none',
-              }}
-            >
-              <div
-                className="absolute rounded-full"
-                style={{
-                  width: 10,
-                  height: 10,
-                  background: '#00C853',
-                  left: -5,
-                  top: 4,
-                  boxShadow: '0 0 8px rgba(0, 200, 83, 0.3)',
-                }}
-              />
-              <div className="flex flex-col gap-1">
-                <div className="flex items-baseline justify-between">
-                  <h4 className="font-display font-semibold text-sm" style={{ color: '#0A1A0F' }}>{item.role}</h4>
-                  <span className="font-mono text-xs" style={{ color: '#5A7A6A' }}>{item.duration}</span>
+        <div className="flex flex-col gap-8 relative before:absolute before:inset-0 before:ml-[19px] md:before:ml-[23px] before:-translate-x-px md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-[#1976d2] before:to-transparent">
+          {timelineData.map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <div key={i} className="relative pl-12 md:pl-16 group">
+                {/* Timeline Dot/Icon */}
+                <div 
+                  className="absolute left-0 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 z-10"
+                  style={{ background: '#fff', border: '2px solid #1976d2', boxShadow: '0 0 10px rgba(25, 118, 210, 0.15)' }}
+                >
+                  <Icon size={16} style={{ color: '#1976d2' }} />
                 </div>
-                <p className="text-xs font-medium" style={{ color: '#00C853' }}>{item.org}</p>
-                <p className="text-sm mt-1" style={{ color: '#5A7A6A', lineHeight: 1.6 }}>{item.impact}</p>
+                
+                {/* Content Card */}
+                <div className="p-6 rounded-xl border bg-white transition-all duration-300 hover:shadow-md hover:border-blue-500/30" style={{ borderColor: 'rgba(25, 118, 210, 0.08)' }}>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-2 gap-2">
+                    <h4 className="font-display font-bold text-lg" style={{ color: '#0A1A0F' }}>{item.role}</h4>
+                    <span className="font-mono text-xs px-3 py-1 rounded-full w-fit" style={{ background: 'rgba(25, 118, 210, 0.06)', color: '#1976d2' }}>{item.duration}</span>
+                  </div>
+                  <p className="text-sm font-semibold mb-3" style={{ color: '#1976d2' }}>{item.org}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: '#5A7A6A' }}>{item.impact}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* Skills Visualization */}
-      <div ref={el => { sectionRefs.current[2] = el; }} style={{ opacity: 0 }}>
-        <h3 className="font-display text-lg font-semibold mb-6 flex items-center gap-2" style={{ color: '#0A1A0F' }}>
-          <TrendingUp size={18} style={{ color: '#00C853' }} />
-          Skills
+      {/* Skills Matrix */}
+      <div>
+        <h3 className="font-display text-xl font-bold mb-8 flex items-center gap-3" style={{ color: '#0A1A0F' }}>
+          <TrendingUp size={22} style={{ color: '#1976d2' }} />
+          Core Competencies
         </h3>
-        <div className="flex flex-wrap gap-8 justify-center">
+        <div className="flex flex-wrap gap-8 justify-center p-8 rounded-2xl border" style={{ background: 'rgba(25, 118, 210, 0.02)', borderColor: 'rgba(25, 118, 210, 0.06)' }}>
           {skillsData.map((skill, i) => (
-            <SkillRing key={skill.name} name={skill.name} percentage={skill.percentage} delay={i * 150} />
+            <SkillRing key={skill.name} name={skill.name} percentage={skill.percentage} color={skill.color} delay={i * 150} />
           ))}
         </div>
       </div>
 
-      {/* Certifications */}
-      <div ref={el => { sectionRefs.current[3] = el; }} style={{ opacity: 0 }}>
-        <h3 className="font-display text-lg font-semibold mb-6 flex items-center gap-2" style={{ color: '#0A1A0F' }}>
-          <Award size={18} style={{ color: '#00C853' }} />
-          Certifications & Achievements
+      {/* Accolades */}
+      <div>
+        <h3 className="font-display text-xl font-bold mb-8 flex items-center gap-3" style={{ color: '#0A1A0F' }}>
+          <Award size={22} style={{ color: '#1976d2' }} />
+          Accolades & Recognition
         </h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {certsData.map((cert) => (
             <div
               key={cert.id}
-              className="glass-card p-5 transition-all duration-300 hover:-translate-y-1"
-              style={{ cursor: 'default' }}
+              className="group p-5 rounded-xl border bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+              style={{ borderColor: 'rgba(25, 118, 210, 0.08)' }}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-4">
                 <div
-                  className="flex-shrink-0 rounded-full flex items-center justify-center"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    background: 'rgba(0, 200, 83, 0.1)',
-                  }}
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:rotate-12"
+                  style={{ background: 'rgba(25, 118, 210, 0.06)' }}
                 >
-                  <Star size={16} style={{ color: '#00C853' }} />
+                  <Star size={18} style={{ color: '#1976d2' }} />
                 </div>
                 <div>
-                  <h4 className="font-display font-semibold text-sm" style={{ color: '#0A1A0F' }}>{cert.title}</h4>
-                  <p className="text-xs mt-0.5" style={{ color: '#5A7A6A' }}>{cert.subtitle}</p>
+                  <h4 className="font-display font-bold text-sm mb-1" style={{ color: '#0A1A0F' }}>{cert.title}</h4>
+                  <p className="text-xs" style={{ color: '#5A7A6A' }}>{cert.subtitle}</p>
+                  <div className="mt-2 text-[10px] font-mono uppercase tracking-wider font-semibold" style={{ color: '#1976d2' }}>
+                    {cert.issuer}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Featured Projects */}
-      <div ref={el => { sectionRefs.current[4] = el; }} style={{ opacity: 0 }}>
-        <h3 className="font-display text-lg font-semibold mb-6" style={{ color: '#0A1A0F' }}>
-          Featured Work
-        </h3>
-        <div className="flex flex-col gap-3">
-          {featuredProjects.map((project) => (
-            <div
-              key={project.title}
-              className="glass-card p-4 flex items-center justify-between transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
-              style={{ borderLeft: '3px solid #00C853' }}
-            >
-              <div>
-                <h4 className="font-display font-medium text-sm" style={{ color: '#0A1A0F' }}>{project.title}</h4>
-                <p className="text-xs mt-0.5" style={{ color: '#5A7A6A' }}>{project.category}</p>
-              </div>
-              <span className="font-mono text-xs px-2 py-1 rounded-full" style={{ background: 'rgba(0, 200, 83, 0.08)', color: '#00C853' }}>
-                View
-              </span>
             </div>
           ))}
         </div>

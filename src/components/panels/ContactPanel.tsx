@@ -31,7 +31,7 @@ export default function ContactPanel() {
   };
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText('hello@saimoonhassan.com');
+    navigator.clipboard.writeText('muhammadsaimoonhassan@gmail.com');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -81,7 +81,7 @@ export default function ContactPanel() {
           <span className="text-xs font-mono" style={{ color: '#5A7A6A' }}>Typically replies within 24h</span>
         </div>
         <div className="w-px h-4" style={{ background: 'rgba(0, 200, 83, 0.15)' }} />
-        <span className="text-xs font-mono" style={{ color: '#5A7A6A' }}>Based in Karachi, Pakistan</span>
+        <span className="text-xs font-mono" style={{ color: '#5A7A6A' }}>Based in Dhaka, Bangladesh</span>
       </div>
 
       {/* Progressive Form */}
@@ -249,7 +249,7 @@ export default function ContactPanel() {
         </span>
         <div className="flex flex-wrap gap-3">
           <a
-            href="https://wa.me/92XXXXXXXXXX"
+            href="https://wa.me/8801778011899"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5"
@@ -259,7 +259,7 @@ export default function ContactPanel() {
             WhatsApp
           </a>
           <a
-            href="mailto:hello@saimoonhassan.com"
+            href="mailto:muhammadsaimoonhassan@gmail.com"
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5"
             style={{ background: 'rgba(0, 200, 83, 0.08)', color: '#00C853' }}
           >

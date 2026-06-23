@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { X, ArrowLeft } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useSound } from '@/hooks/useSound';
 import gsap from 'gsap';
@@ -27,6 +27,9 @@ export default function ContentPanel() {
   const contentRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const { playClick } = useSound();
+
+  const backOverride = useStore((s) => s.backOverride);
+  const setBackOverride = useStore((s) => s.setBackOverride);
 
   useEffect(() => {
     if (!panelRef.current || !contentRef.current) return;
@@ -70,11 +73,24 @@ export default function ContentPanel() {
         duration: 0.4,
         ease: 'power2.in',
       });
+      
+      // Clear back override when closing
+      setBackOverride(null);
     }
-  }, [activeNode]);
+  }, [activeNode, setBackOverride]);
+
+  const handleBack = () => {
+    playClick();
+    if (backOverride) {
+      const handled = backOverride();
+      if (handled) return;
+    }
+    setActiveNode(null);
+  };
 
   const handleClose = () => {
     playClick();
+    setBackOverride(null);
     setActiveNode(null);
   };
 
@@ -130,12 +146,27 @@ export default function ContentPanel() {
             backdropFilter: 'blur(16px)',
           }}
         >
-          <h2
-            className="font-display font-semibold"
-            style={{ color: '#0A1A0F', fontSize: 'clamp(14px, 3vw, 20px)' }}
-          >
-            {panelTitles[activeNode]}
-          </h2>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleBack}
+              className="flex items-center justify-center rounded-full transition-all duration-300 hover:-translate-x-0.5"
+              style={{
+                width: 34,
+                height: 34,
+                background: 'rgba(0, 200, 83, 0.08)',
+                color: '#5A7A6A',
+              }}
+              aria-label="Go back"
+            >
+              <ArrowLeft size={16} />
+            </button>
+            <h2
+              className="font-display font-semibold"
+              style={{ color: '#0A1A0F', fontSize: 'clamp(14px, 3vw, 20px)' }}
+            >
+              {panelTitles[activeNode]}
+            </h2>
+          </div>
           <button
             onClick={handleClose}
             className="flex items-center justify-center rounded-full transition-all duration-300 hover:rotate-90"

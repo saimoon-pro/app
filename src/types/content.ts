@@ -59,6 +59,16 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   text: string;
   timestamp: number;
+  videoSuggestions?: Array<{
+    id: string;
+    title: string;
+    category: string;
+    thumbnail: string;
+    videoUrl: string;
+    description: string;
+  }>;
+  suggestedSection?: string;
+  action?: string;
 }
 
 export type OrbitNodeId = 'career' | 'video' | 'design' | 'web' | 'ai' | 'contact';

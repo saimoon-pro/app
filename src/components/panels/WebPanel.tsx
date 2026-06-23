@@ -1,32 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ExternalLink, Zap, Accessibility, Search, Shield, ChevronDown, ChevronUp } from 'lucide-react';
-
-const projects = [
-  {
-    id: '1',
-    title: 'Luminex.io',
-    subtitle: 'Brand website for smart lighting company',
-    description: 'An immersive brand experience with 3D elements, achieving 92 Lighthouse performance score and 40% increase in demo requests.',
-    image: '/images/web-project-1.jpg',
-    tags: ['React', 'Next.js', 'GSAP', 'Three.js', 'Tailwind'],
-    link: 'https://luminex.io',
-    metrics: { performance: 92, accessibility: 100, seo: 95, bestPractices: 100 },
-    challenge: 'Balancing heavy 3D elements with sub-2s load times',
-    solution: 'Implemented progressive loading with IntersectionObserver, lazy Three.js, and AVIF images',
-  },
-  {
-    id: '2',
-    title: 'EvoFit.co',
-    subtitle: 'Fitness platform web application',
-    description: 'Full-stack fitness tracking platform with social features and real-time data visualization.',
-    image: '/images/web-project-2.jpg',
-    tags: ['React', 'Node.js', 'MongoDB', 'Socket.io'],
-    link: 'https://evofit.co',
-    metrics: { performance: 88, accessibility: 96, seo: 92, bestPractices: 100 },
-    challenge: 'Real-time activity tracking with 10K+ concurrent users',
-    solution: 'WebSocket architecture with Redis caching and optimized database queries',
-  },
-];
+import { useStore } from '@/store/useStore';
 
 function MetricGauge({ label, value, icon: Icon }: { label: string; value: number; icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }> }) {
   const radius = 22;
@@ -61,8 +35,25 @@ function MetricGauge({ label, value, icon: Icon }: { label: string; value: numbe
 }
 
 export default function WebPanel() {
+  const content = useStore((s) => s.content);
+  const projects = useMemo(() => {
+    return content.filter(c => c.contentType === 'Website Project').map(c => ({
+      id: c.id,
+      title: c.title,
+      subtitle: c.subtitle || c.category,
+      description: c.description,
+      image: c.thumbnailUrl || '/images/web-project-1.jpg',
+      tags: c.tags.length > 0 ? c.tags : ['Web'],
+      link: c.websiteUrl,
+      metrics: { performance: 92, accessibility: 100, seo: 95, bestPractices: 100 },
+      challenge: 'Ensuring high performance with rich visual design.',
+      solution: 'Optimized assets and used progressive rendering.',
+    }));
+  }, [content]);
+
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [hoveredProject, setHoveredProject] = useState<string | null>(null);
+  const [previewingProject, setPreviewingProject] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -76,16 +67,36 @@ export default function WebPanel() {
             onMouseEnter={() => setHoveredProject(project.id)}
             onMouseLeave={() => setHoveredProject(null)}
           >
-            {/* Project Image */}
-            <div className="relative overflow-hidden" style={{ aspectRatio: '16/9' }}>
-              <img
-                src={project.image}
-                alt={project.title}
-                className="w-full h-full object-cover transition-transform duration-500"
-                style={{ transform: hoveredProject === project.id ? 'scale(1.03)' : 'scale(1)' }}
-                loading="lazy"
-              />
-              <div className="absolute top-3 right-3">
+            {/* Project Image / Preview */}
+            <div className="relative overflow-hidden group" style={{ aspectRatio: '16/9' }}>
+              {previewingProject === project.id ? (
+                <iframe 
+                  src={project.link} 
+                  title={`Preview of ${project.title}`}
+                  className="w-full h-full border-0 bg-white"
+                />
+              ) : (
+                <img
+                  src={project.image}
+                  alt={project.title}
+                  className="w-full h-full object-cover transition-transform duration-500"
+                  style={{ transform: hoveredProject === project.id ? 'scale(1.03)' : 'scale(1)' }}
+                  loading="lazy"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/web-project-1.jpg'; }}
+                />
+              )}
+              
+              <div className="absolute top-3 right-3 flex gap-2">
+                {previewingProject !== project.id && (
+                  <button
+                    onClick={() => setPreviewingProject(project.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 hover:scale-105"
+                    style={{ background: 'rgba(25, 118, 210, 0.9)', color: '#fff' }}
+                  >
+                    <Zap size={12} />
+                    Live Preview
+                  </button>
+                )}
                 <a
                   href={project.link}
                   target="_blank"
@@ -94,7 +105,7 @@ export default function WebPanel() {
                   style={{ background: 'rgba(0, 200, 83, 0.9)', color: '#fff' }}
                 >
                   <ExternalLink size={12} />
-                  Visit Site
+                  Visit
                 </a>
               </div>
             </div>

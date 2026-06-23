@@ -1,35 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Layers, Image, Layout } from 'lucide-react';
-
-const uiuxProjects = [
-  {
-    id: '1',
-    title: 'Luminex Analytics Dashboard',
-    subtitle: 'Complete analytics dashboard redesign',
-    description: 'Redesigned the analytics experience for a smart lighting brand. Reduced user task time by 42% through improved information architecture and data visualization.',
-    image: '/images/uiux-case-1.jpg',
-    tags: ['Dashboard', 'SaaS', 'Analytics'],
-    result: '42% faster task completion',
-  },
-  {
-    id: '2',
-    title: 'FlowState Mobile App',
-    subtitle: 'Productivity app with focus timer',
-    description: 'Designed a clean, intuitive productivity app combining focus timer and task management. Reached 50K+ downloads in the first month.',
-    image: '/images/uiux-case-2.jpg',
-    tags: ['Mobile', 'Productivity', 'iOS'],
-    result: '50K+ downloads',
-  },
-];
-
-const illustrations = [
-  { id: '1', title: 'Digital Fragments', category: 'Abstract', image: '/images/illustration-1.jpg' },
-  { id: '2', title: 'Orbital Harmony', category: 'Cosmic', image: '/images/illustration-2.jpg' },
-];
-
-const postDesigns = [
-  { id: '1', title: 'Veridian Brand Identity', category: 'Branding', image: '/images/post-design-1.jpg' },
-];
+import { useStore } from '@/store/useStore';
 
 type Tab = 'uiux' | 'illustration' | 'post';
 
@@ -40,6 +11,38 @@ const tabs: { id: Tab; label: string; Icon: React.ComponentType<{ className?: st
 ];
 
 export default function DesignPanel() {
+  const content = useStore((s) => s.content);
+  
+  const uiuxProjects = useMemo(() => {
+    return content.filter(c => c.contentType === 'UIUX Design').map(c => ({
+      id: c.id,
+      title: c.title,
+      subtitle: c.subtitle || c.category,
+      description: c.description,
+      image: c.thumbnailUrl || '/images/uiux-case-1.jpg',
+      tags: c.tags.length > 0 ? c.tags : ['UIUX'],
+      result: 'Delivered successfully',
+    }));
+  }, [content]);
+
+  const illustrations = useMemo(() => {
+    return content.filter(c => c.contentType === 'Illustration').map(c => ({
+      id: c.id,
+      title: c.title,
+      category: c.category,
+      image: c.thumbnailUrl || '/images/illustration-1.jpg',
+    }));
+  }, [content]);
+
+  const postDesigns = useMemo(() => {
+    return content.filter(c => c.contentType === 'Post Design').map(c => ({
+      id: c.id,
+      title: c.title,
+      category: c.category,
+      image: c.thumbnailUrl || '/images/post-design-1.jpg',
+    }));
+  }, [content]);
+
   const [activeTab, setActiveTab] = useState<Tab>('uiux');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -74,7 +77,8 @@ export default function DesignPanel() {
           {uiuxProjects.map((project) => (
             <div
               key={project.id}
-              className="glass-card overflow-hidden transition-all duration-300 hover:-translate-y-1"
+              className="glass-card overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+              onClick={() => setLightboxImage(project.image)}
               onMouseEnter={() => setHoveredItem(project.id)}
               onMouseLeave={() => setHoveredItem(null)}
             >
@@ -156,7 +160,8 @@ export default function DesignPanel() {
           {postDesigns.map((item) => (
             <div
               key={item.id}
-              className="glass-card overflow-hidden transition-all duration-300 hover:-translate-y-1"
+              className="glass-card overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+              onClick={() => setLightboxImage(item.image)}
               onMouseEnter={() => setHoveredItem(item.id)}
               onMouseLeave={() => setHoveredItem(null)}
             >

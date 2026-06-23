@@ -2,6 +2,7 @@
 // For demo purposes, this returns placeholder data.
 // In production, replace SHEET_ID with actual Google Sheet ID and fetch via Google Sheets API
 
+import Papa from 'papaparse';
 import type { ContentItem, WebsiteSettings, ContactSettings } from '@/types/content';
 
 // Google Sheet: https://docs.google.com/spreadsheets/d/1k8JqJooRpIbHBhgQS3-lSw502nNlwyokCX3P_oE3sHA
@@ -141,31 +142,119 @@ const PLACEHOLDER_SETTINGS: WebsiteSettings = {
 };
 
 const PLACEHOLDER_CONTACT: ContactSettings = {
-  email: 'hello@saimoonhassan.com',
-  phone: '+92-XXX-XXXXXXX',
-  whatsapp: '+92-XXX-XXXXXXX',
-  address: 'Karachi, Pakistan',
+  email: 'muhammadsaimoonhassan@gmail.com / helixonixcorp@gmail.com',
+  phone: '+8801778011899',
+  whatsapp: '+8801778011899',
+  address: 'Bangladesh, Dhaka 1207',
   socialLinks: [
     { platform: 'LinkedIn', url: 'https://linkedin.com/in/saimoonhassan' },
     { platform: 'Behance', url: 'https://behance.net/saimoonhassan' },
     { platform: 'Dribbble', url: 'https://dribbble.com/saimoonhassan' },
     { platform: 'GitHub', url: 'https://github.com/saimoonhassan' },
   ],
-  businessName: 'Muhammad Saimoon Hassan',
+  businessName: 'www.helixonix.xyz',
   ctaText: 'Let\'s create something amazing together',
-  footerText: 'Crafted with passion in Karachi, Pakistan',
+  footerText: 'Crafted with passion in Dhaka, Bangladesh',
 };
 
 class GoogleSheetsService {
   private async fetchSheet(): Promise<ContentItem[]> {
-    // In production: fetch from Google Sheets API
-    // const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Content%20Manager?key=${API_KEY}`;
-    // const response = await fetch(url);
-    // const data = await response.json();
-    // Parse rows into ContentItem objects
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/1lkc5llkD_zYwDbFTgn-YV9ITotvSu81zlC9sGiE5dwA/export?format=csv';
+    try {
+      const response = await fetch(csvUrl);
+      if (!response.ok) {
+        console.error('Failed to fetch CSV', response.status);
+        return PLACEHOLDER_CONTENT;
+      }
+      const csvText = await response.text();
+      
+      const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+      if (!parsed.data || parsed.data.length === 0) {
+         return PLACEHOLDER_CONTENT;
+      }
+      
+      const items: ContentItem[] = [];
+      let order = 1;
+      
+      parsed.data.forEach((row: any, index: number) => {
+        const rawType = (row['Type'] || '').trim();
+        const rawStatus = (row['Status'] || '').trim();
+        const rawLinkType = (row['Link Type'] || '').trim();
+        
+        if (rawStatus.toLowerCase() !== 'update') {
+          return;
+        }
 
-    // For now, return placeholder data
-    return PLACEHOLDER_CONTENT;
+        let contentType: any = 'Video Editing';
+        if (rawType.toLowerCase() === 'video') contentType = 'Video Editing';
+        else if (rawType.toLowerCase() === 'website') contentType = 'Website Project';
+        else if (rawType.toLowerCase() === 'ui ux' || rawType.toLowerCase() === 'ui/ux') contentType = 'UIUX Design';
+        else if (rawType.toLowerCase() === 'post') contentType = 'Post Design';
+        else if (rawType.toLowerCase() === 'images') contentType = 'Illustration';
+        
+        const title = (row['Title '] || row['Title'] || '').trim() || `Item ${index + 1}`;
+        const description = (row['Description '] || row['Description'] || '').trim();
+        const link = (row['Link'] || '').trim();
+        let thumbnail = (row['Thumbnail '] || row['Thumbnail'] || '').trim();
+        
+        // Handle fallback thumbnails
+        if (!thumbnail || thumbnail.toLowerCase() === 'thumbnail') {
+            if (contentType === 'Video Editing') thumbnail = '/images/thumb-video-1.jpg';
+            else if (contentType === 'Website Project') thumbnail = '/images/web-project-1.jpg';
+            else thumbnail = '/images/illustration-1.jpg';
+        } else if (thumbnail.includes('drive.google.com/file/d/')) {
+            // Convert Google Drive view links to direct image links
+            const match = thumbnail.match(/\/file\/d\/([^\/]+)/);
+            if (match && match[1]) {
+                thumbnail = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            }
+        } else if (thumbnail.includes('drive.google.com/open?id=')) {
+            const match = thumbnail.match(/id=([^&]+)/);
+            if (match && match[1]) {
+                thumbnail = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            }
+        }
+
+        let videoUrl = '';
+        let websiteUrl = '';
+        
+        if (contentType === 'Video Editing') {
+          videoUrl = link;
+        } else if (contentType === 'Website Project') {
+          websiteUrl = link;
+        } else {
+          websiteUrl = link;
+        }
+
+        items.push({
+          id: `sheet-${items.length}-${index}`,
+          contentType: contentType,
+          category: rawLinkType || 'General',
+          title: title,
+          subtitle: rawLinkType,
+          description: description,
+          thumbnailUrl: thumbnail,
+          previewImageUrl: '',
+          videoUrl: videoUrl,
+          websiteUrl: websiteUrl,
+          caseStudyUrl: '',
+          tags: [rawLinkType, rawType].filter(Boolean),
+          featured: true,
+          uploadStatus: 'Uploaded',
+          displayOrder: order++,
+          uploadDate: new Date().toISOString(),
+          notes: ''
+        });
+      });
+      
+      if (items.length > 0) {
+        return items;
+      }
+      return PLACEHOLDER_CONTENT;
+    } catch (e) {
+      console.error('Error parsing sheet:', e);
+      return PLACEHOLDER_CONTENT;
+    }
   }
 
   private async fetchSettings(): Promise<WebsiteSettings> {
