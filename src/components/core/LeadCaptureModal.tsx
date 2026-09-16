@@ -49,26 +49,29 @@ export default function LeadCaptureModal() {
         ? `Hello Saimoon! My name is ${name}. I visited your portfolio and would love to discuss a project with you.`
         : "Hello Saimoon! I visited your digital services portfolio and would love to discuss a project with you."
     );
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedText}`, '_blank');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedText}`, '_blank', 'noopener,noreferrer');
   };
 
   // Form submit handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !phone.trim()) return;
+    const sanitizedName = name.trim().slice(0, 100);
+    const sanitizedPhone = phone.trim().slice(0, 30);
+    if (!sanitizedName || !sanitizedPhone) return;
 
     setIsSubmitting(true);
     playClick();
 
-    // Store in localStorage
+    // Store safely in localStorage
     try {
-      const existingLeads = JSON.parse(localStorage.getItem('saimoon_leads') || '[]');
+      const rawLeads = localStorage.getItem('saimoon_leads');
+      const existingLeads = Array.isArray(JSON.parse(rawLeads || '[]')) ? JSON.parse(rawLeads || '[]') : [];
       existingLeads.push({
-        name,
-        phone,
+        name: sanitizedName,
+        phone: sanitizedPhone,
         timestamp: new Date().toISOString(),
       });
-      localStorage.setItem('saimoon_leads', JSON.stringify(existingLeads));
+      localStorage.setItem('saimoon_leads', JSON.stringify(existingLeads.slice(-50)));
     } catch {
       // Safe fallback
     }

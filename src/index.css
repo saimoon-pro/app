@@ -308,15 +308,7 @@
   }
 }
 
-/* Resume FAB responsive position – avoids keyboard hint on desktop */
-.resume-fab-container {
-  bottom: 16px !important;
-  right: 16px !important;
-}
-
-@media (min-width: 1024px) {
-  .resume-fab-container {
-    bottom: 48px !important;
-    right: 24px !important;
-  }
+/* Resume Header CTA styling */
+.resume-cta-container {
+  z-index: 45;
 }

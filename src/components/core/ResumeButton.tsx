@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import { FileText, Eye, Download, X } from 'lucide-react';
+import { FileText, Eye, Download, X, ChevronDown } from 'lucide-react';
+import { useStore } from '@/store/useStore';
 
-const RESUME_PATH = '/Muhammad saimoon hassan.pdf';
+const RESUME_PATH = `${import.meta.env.BASE_URL}Muhammad saimoon hassan.pdf`;
 
 export default function ResumeButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isViewing, setIsViewing] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const isViewing = useStore((s) => s.resumeModalOpen);
+  const setIsViewing = useStore((s) => s.setResumeModalOpen);
 
   // Close menu on outside click
   useEffect(() => {
@@ -22,7 +25,7 @@ export default function ResumeButton() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Close menu on Escape
+  // Close menu / modal on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -32,7 +35,7 @@ export default function ResumeButton() {
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [setIsViewing]);
 
   const handleDownload = () => {
     const link = document.createElement('a');
@@ -51,36 +54,32 @@ export default function ResumeButton() {
 
   return (
     <>
-      {/* ─── Floating Button + Dropdown ─── */}
+      {/* ─── Top-Right Floating Resume Header CTA ─── */}
       <div
         ref={menuRef}
-        className="fixed z-50 resume-fab-container"
-        style={{
-          bottom: 16,
-          right: 16,
-        }}
+        className="fixed top-2.5 right-3 sm:top-3 sm:right-4 lg:top-7 lg:right-10 z-40 resume-cta-container select-none"
       >
-        {/* Dropdown Menu (appears above the button) */}
+        {/* Dropdown Menu (appears below the button) */}
         <div
-          className="absolute bottom-full right-0 mb-3 overflow-hidden"
+          className="absolute top-full right-0 mt-2 sm:mt-3 overflow-hidden"
           style={{
             opacity: isOpen ? 1 : 0,
-            transform: isOpen ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.95)',
+            transform: isOpen ? 'translateY(0) scale(1)' : 'translateY(-8px) scale(0.95)',
             pointerEvents: isOpen ? 'auto' : 'none',
             transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            transformOrigin: 'bottom right',
+            transformOrigin: 'top right',
           }}
         >
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.88)',
-              backdropFilter: 'blur(24px) saturate(140%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(140%)',
-              border: '1px solid rgba(0, 200, 83, 0.15)',
-              borderRadius: 14,
-              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08), 0 2px 12px rgba(0, 200, 83, 0.06)',
+              background: 'rgba(6, 22, 14, 0.96)',
+              backdropFilter: 'blur(28px) saturate(160%)',
+              WebkitBackdropFilter: 'blur(28px) saturate(160%)',
+              border: '1.5px solid rgba(0, 200, 83, 0.45)',
+              borderRadius: 16,
+              boxShadow: '0 16px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 200, 83, 0.25)',
               padding: 6,
-              minWidth: 200,
+              minWidth: 210,
             }}
           >
             {/* View Option */}
@@ -92,16 +91,16 @@ export default function ResumeButton() {
                 alignItems: 'center',
                 gap: 10,
                 width: '100%',
-                padding: '10px 14px',
+                padding: '9px 12px',
                 borderRadius: 10,
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                color: '#0A1A0F',
+                color: '#FFFFFF',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 200, 83, 0.08)';
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 200, 83, 0.16)';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
@@ -112,27 +111,29 @@ export default function ResumeButton() {
                   width: 32,
                   height: 32,
                   borderRadius: 8,
-                  background: 'rgba(0, 200, 83, 0.1)',
+                  background: 'rgba(0, 200, 83, 0.18)',
+                  border: '1px solid rgba(0, 255, 102, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
+                  boxShadow: '0 0 10px rgba(0, 200, 83, 0.2)',
                 }}
               >
-                <Eye size={15} style={{ color: '#00C853' }} />
+                <Eye size={15} style={{ color: '#00FF66' }} />
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div
                   className="font-display"
-                  style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3, color: '#0A1A0F' }}
+                  style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.3, color: '#FFFFFF' }}
                 >
                   View Resume
                 </div>
                 <div
                   className="font-mono"
-                  style={{ fontSize: 9, color: '#5A7A6A', letterSpacing: '0.05em', marginTop: 1 }}
+                  style={{ fontSize: 9, color: '#8BAAA0', letterSpacing: '0.04em', marginTop: 1 }}
                 >
-                  Preview in browser
+                  Browser preview
                 </div>
               </div>
             </button>
@@ -141,8 +142,8 @@ export default function ResumeButton() {
             <div
               style={{
                 height: 1,
-                background: 'rgba(0, 200, 83, 0.1)',
-                margin: '2px 10px',
+                background: 'rgba(0, 200, 83, 0.15)',
+                margin: '3px 8px',
               }}
             />
 
@@ -155,16 +156,16 @@ export default function ResumeButton() {
                 alignItems: 'center',
                 gap: 10,
                 width: '100%',
-                padding: '10px 14px',
+                padding: '9px 12px',
                 borderRadius: 10,
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                color: '#0A1A0F',
+                color: '#FFFFFF',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 200, 83, 0.08)';
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 200, 83, 0.16)';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
@@ -175,73 +176,66 @@ export default function ResumeButton() {
                   width: 32,
                   height: 32,
                   borderRadius: 8,
-                  background: 'rgba(0, 200, 83, 0.1)',
+                  background: 'rgba(0, 200, 83, 0.18)',
+                  border: '1px solid rgba(0, 255, 102, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
+                  boxShadow: '0 0 10px rgba(0, 200, 83, 0.2)',
                 }}
               >
-                <Download size={15} style={{ color: '#00C853' }} />
+                <Download size={15} style={{ color: '#00FF66' }} />
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div
                   className="font-display"
-                  style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3, color: '#0A1A0F' }}
+                  style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.3, color: '#FFFFFF' }}
                 >
                   Download CV
                 </div>
                 <div
                   className="font-mono"
-                  style={{ fontSize: 9, color: '#5A7A6A', letterSpacing: '0.05em', marginTop: 1 }}
+                  style={{ fontSize: 9, color: '#8BAAA0', letterSpacing: '0.04em', marginTop: 1 }}
                 >
-                  Save PDF to device
+                  Save PDF file
                 </div>
               </div>
             </button>
           </div>
         </div>
 
-        {/* ─── Main Floating Button ─── */}
+        {/* ─── Main High-Visibility Glowing Resume Pill ─── */}
         <button
-          id="resume-fab"
+          id="resume-header-cta"
           onClick={() => setIsOpen((prev) => !prev)}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           aria-label="View or Download Resume"
+          className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4.5 h-9 sm:h-12 rounded-full cursor-pointer transition-all duration-300"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: isHovered || isOpen ? 10 : 0,
-            padding: isHovered || isOpen ? '0 20px 0 16px' : '0 14px',
-            height: 48,
-            borderRadius: 24,
-            border: '1px solid rgba(0, 200, 83, 0.2)',
+            border: isOpen || isHovered
+              ? '1.5px solid #00FF66'
+              : '1.5px solid rgba(0, 230, 118, 0.6)',
             background: isOpen
-              ? 'linear-gradient(135deg, #00C853, #00E676)'
-              : 'rgba(255, 255, 255, 0.88)',
-            backdropFilter: 'blur(20px) saturate(140%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(140%)',
-            boxShadow: isHovered || isOpen
-              ? '0 8px 32px rgba(0, 200, 83, 0.2), 0 2px 8px rgba(0, 0, 0, 0.06)'
-              : '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 6px rgba(0, 200, 83, 0.08)',
-            cursor: 'pointer',
-            transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-            transform: isHovered && !isOpen ? 'translateY(-2px)' : 'translateY(0)',
+              ? 'linear-gradient(135deg, rgba(0, 200, 83, 0.95), rgba(0, 230, 118, 0.85))'
+              : 'rgba(6, 22, 14, 0.88)',
+            backdropFilter: 'blur(24px) saturate(160%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+            boxShadow: isOpen || isHovered
+              ? '0 8px 36px rgba(0, 200, 83, 0.45), 0 0 45px rgba(0, 255, 102, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+              : '0 4px 20px rgba(0, 0, 0, 0.7), 0 0 22px rgba(0, 200, 83, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+            transform: isHovered && !isOpen ? 'translateY(-2px) scale(1.02)' : 'translateY(0) scale(1)',
             overflow: 'hidden',
             whiteSpace: 'nowrap',
           }}
         >
-          {/* Animated pulse ring behind icon */}
+          {/* Animated pulsing icon beacon */}
           <div
+            className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full flex-shrink-0"
             style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 22,
-              height: 22,
-              flexShrink: 0,
+              background: isOpen ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 200, 83, 0.22)',
+              border: isOpen ? 'none' : '1px solid rgba(0, 255, 102, 0.3)',
             }}
           >
             {!isOpen && (
@@ -249,50 +243,83 @@ export default function ResumeButton() {
                 className="resume-pulse-ring"
                 style={{
                   position: 'absolute',
-                  inset: -4,
+                  inset: -2.5,
                   borderRadius: '50%',
-                  border: '1.5px solid rgba(0, 200, 83, 0.4)',
-                  animation: 'resume-pulse 2.5s ease-in-out infinite',
+                  border: '1.5px solid rgba(0, 255, 102, 0.5)',
+                  animation: 'resume-pulse 2.2s ease-in-out infinite',
                 }}
               />
             )}
             <FileText
-              size={18}
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0"
               style={{
-                color: isOpen ? '#fff' : '#00C853',
-                transition: 'color 0.3s ease',
-                flexShrink: 0,
+                color: isOpen ? '#050c07' : '#00FF66',
+                transition: 'color 0.25s ease',
               }}
             />
           </div>
 
-          {/* Expanding label text */}
-          <span
-            className="font-display"
+          {/* Prominent Label */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span
+              className="font-display tracking-wider text-xs sm:text-sm font-bold"
+              style={{
+                color: isOpen ? '#050c07' : '#FFFFFF',
+                letterSpacing: '0.06em',
+                textShadow: isOpen ? 'none' : '0 2px 8px rgba(0,0,0,0.8)',
+              }}
+            >
+              RESUME / CV
+            </span>
+
+            {/* Glowing Live PDF badge */}
+            <div
+              className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full"
+              style={{
+                background: isOpen ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 200, 83, 0.2)',
+                border: isOpen ? 'none' : '1px solid rgba(0, 255, 102, 0.4)',
+              }}
+            >
+              <div
+                className="w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: isOpen ? '#050c07' : '#00FF66',
+                  boxShadow: isOpen ? 'none' : '0 0 6px #00FF66',
+                }}
+              />
+              <span
+                className="font-mono text-[9px] sm:text-[10px] font-bold"
+                style={{
+                  color: isOpen ? '#050c07' : '#00FF66',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                PDF
+              </span>
+            </div>
+          </div>
+
+          {/* Caret chevron */}
+          <ChevronDown
+            className="w-3.5 h-3.5 sm:w-4 sm:h-4"
             style={{
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: '0.01em',
-              color: isOpen ? '#fff' : '#0A1A0F',
-              maxWidth: isHovered || isOpen ? 200 : 0,
-              opacity: isHovered || isOpen ? 1 : 0,
-              transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-              overflow: 'hidden',
+              color: isOpen ? '#050c07' : '#8BAAA0',
+              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.3s ease, color 0.3s ease',
+              marginLeft: -2,
             }}
-          >
-            {isOpen ? 'Close' : 'My Resume'}
-          </span>
+          />
         </button>
       </div>
 
-      {/* ─── Full-Screen PDF Viewer Overlay ─── */}
+      {/* ─── Full-Screen PDF Viewer Modal ─── */}
       {isViewing && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
           style={{
-            background: 'rgba(10, 26, 15, 0.7)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            background: 'rgba(5, 12, 7, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             animation: 'resume-overlay-in 0.3s ease forwards',
           }}
           onClick={(e) => {
@@ -303,101 +330,132 @@ export default function ResumeButton() {
           <div
             style={{
               position: 'relative',
-              width: 'min(92vw, 900px)',
-              height: 'min(90vh, 1100px)',
-              borderRadius: 16,
+              width: 'min(94vw, 980px)',
+              height: 'min(92vh, 1150px)',
+              borderRadius: 20,
               overflow: 'hidden',
-              background: '#fff',
-              boxShadow: '0 24px 80px rgba(0, 0, 0, 0.25)',
+              background: '#0d1810',
+              border: '1.5px solid rgba(0, 200, 83, 0.4)',
+              boxShadow: '0 28px 100px rgba(0, 0, 0, 0.9), 0 0 50px rgba(0, 200, 83, 0.25)',
               animation: 'resume-viewer-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            {/* Top bar */}
+            {/* Top Cyber Bar */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '12px 16px',
-                background: 'rgba(248, 250, 251, 0.95)',
-                borderBottom: '1px solid rgba(0, 200, 83, 0.1)',
+                padding: '14px 20px',
+                background: 'rgba(8, 24, 15, 0.98)',
+                borderBottom: '1.5px solid rgba(0, 200, 83, 0.25)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <FileText size={16} style={{ color: '#00C853' }} />
-                <span
-                  className="font-display"
-                  style={{ fontSize: 13, fontWeight: 600, color: '#0A1A0F' }}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    background: 'rgba(0, 200, 83, 0.15)',
+                    border: '1px solid rgba(0, 255, 102, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  Muhammad Saimoon Hassan — Resume
-                </span>
+                  <FileText size={17} style={{ color: '#00FF66' }} />
+                </div>
+                <div>
+                  <div
+                    className="font-display"
+                    style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '0.02em' }}
+                  >
+                    Muhammad Saimoon Hassan — Official Resume
+                  </div>
+                  <div
+                    className="font-mono hidden sm:block"
+                    style={{ fontSize: 10, color: '#8BAAA0', letterSpacing: '0.05em' }}
+                  >
+                    Video Editor · UI/UX Designer · Web Developer · AI Specialist
+                  </div>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {/* Download from viewer */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {/* Download Button */}
                 <button
                   onClick={handleDownload}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6,
-                    padding: '6px 14px',
-                    borderRadius: 8,
-                    border: '1px solid rgba(0, 200, 83, 0.2)',
-                    background: 'rgba(0, 200, 83, 0.06)',
+                    gap: 8,
+                    padding: '8px 16px',
+                    borderRadius: 10,
+                    border: '1.5px solid rgba(0, 200, 83, 0.4)',
+                    background: 'rgba(0, 200, 83, 0.15)',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    color: '#00C853',
+                    transition: 'all 0.25s ease',
+                    color: '#00FF66',
                     fontSize: 12,
-                    fontWeight: 600,
+                    fontWeight: 700,
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 200, 83, 0.12)';
+                    (e.currentTarget as HTMLButtonElement).style.background = '#00C853';
+                    (e.currentTarget as HTMLButtonElement).style.color = '#000000';
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 200, 83, 0.06)';
+                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 200, 83, 0.15)';
+                    (e.currentTarget as HTMLButtonElement).style.color = '#00FF66';
                   }}
                 >
-                  <Download size={13} />
-                  <span className="font-display hidden sm:inline">Download</span>
+                  <Download size={14} />
+                  <span className="font-display">Download PDF</span>
                 </button>
 
-                {/* Close button */}
+                {/* Close Button */}
                 <button
                   onClick={() => setIsViewing(false)}
+                  aria-label="Close modal"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 32,
-                    height: 32,
-                    borderRadius: 8,
-                    border: 'none',
-                    background: 'rgba(0, 0, 0, 0.05)',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'rgba(255, 255, 255, 0.05)',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    color: '#5A7A6A',
+                    color: '#8BAAA0',
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 0, 0, 0.1)';
+                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255, 60, 60, 0.2)';
+                    (e.currentTarget as HTMLButtonElement).style.color = '#FF5555';
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 0, 0, 0.05)';
+                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.05)';
+                    (e.currentTarget as HTMLButtonElement).style.color = '#8BAAA0';
                   }}
                 >
-                  <X size={16} />
+                  <X size={18} />
                 </button>
               </div>
             </div>
 
-            {/* PDF Embed */}
+            {/* PDF Embed Frame */}
             <iframe
               src={`${RESUME_PATH}#toolbar=0&navpanes=0`}
               title="Resume - Muhammad Saimoon Hassan"
               style={{
                 width: '100%',
-                height: 'calc(100% - 52px)',
+                flex: 1,
                 border: 'none',
+                background: '#ffffff',
               }}
             />
           </div>

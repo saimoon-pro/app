@@ -1,278 +1,318 @@
 import { useState } from 'react';
-import { Check, Send, MessageCircle, Mail, Copy, CheckCheck } from 'lucide-react';
+import { MessageCircle, Mail, Copy, CheckCheck, Sparkles, ArrowRight, User, AtSign, FileText, DollarSign } from 'lucide-react';
 import { useSound } from '@/hooks/useSound';
 
-const PROJECT_TYPES = [
+const WHATSAPP_NUMBER = '8801778011899';
+
+const SERVICES = [
   'Video Editing',
   'Motion Graphics',
-  'UI-UX Design',
+  'UI/UX Design',
   'Web Development',
   'AI Automation',
   'Other',
 ];
 
-const TIMELINES = ['Urgent', '1-2 Weeks', '1 Month', 'Flexible'];
+const BUDGET_PRESETS = [
+  '< $500',
+  '$500 - $1,500',
+  '$1,500 - $3,000',
+  '$3,000+',
+  'Flexible / Let\'s Discuss',
+];
 
 export default function ContactPanel() {
-  const [step, setStep] = useState(1);
-  const [projectType, setProjectType] = useState('');
-  const [description, setDescription] = useState('');
-  const [timeline, setTimeline] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
+  const [selectedService, setSelectedService] = useState('Video Editing');
+  const [projectDetails, setProjectDetails] = useState('');
+  const [budget, setBudget] = useState('$500 - $1,500');
+  const [customBudget, setCustomBudget] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { playConfirm } = useSound();
+  const [lastWaUrl, setLastWaUrl] = useState('');
 
-  const handleSubmit = () => {
-    playConfirm();
-    setSubmitted(true);
-  };
+  const { playClick, playConfirm } = useSound();
 
   const handleCopyEmail = () => {
+    playClick();
     navigator.clipboard.writeText('muhammadsaimoonhassan@gmail.com');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (submitted) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div
-          className="rounded-full flex items-center justify-center mb-6"
-          style={{
-            width: 80,
-            height: 80,
-            background: 'rgba(0, 200, 83, 0.1)',
-          }}
-        >
-          <svg width="40" height="40" viewBox="0 0 40 40">
-            <circle cx="20" cy="20" r="18" fill="none" stroke="#00C853" strokeWidth="2" opacity="0.2" />
-            <path
-              d="M12 20 L18 26 L28 14"
-              fill="none"
-              stroke="#00C853"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeDasharray="30"
-              strokeDashoffset="30"
-              style={{ animation: 'checkmark-draw 0.6s ease-out forwards' }}
-            />
-          </svg>
-        </div>
-        <h4 className="font-display font-semibold text-xl mb-2" style={{ color: '#0A1A0F' }}>
-          Message Sent!
-        </h4>
-        <p className="text-sm" style={{ color: '#5A7A6A' }}>
-          I&apos;ll get back to you within 24 hours.
-        </p>
-      </div>
-    );
-  }
+  const effectiveBudget = customBudget.trim() || budget;
+
+  const handleContinueWhatsApp = (e: React.FormEvent) => {
+    e.preventDefault();
+    playConfirm();
+
+    const sanitizedName = name.trim() || 'Client';
+    const sanitizedEmail = email.trim() || 'Not specified';
+    const sanitizedService = selectedService || 'General Project';
+    const sanitizedDetails = projectDetails.trim() || 'I would like to discuss a project with you.';
+    const sanitizedBudget = effectiveBudget || 'Flexible';
+
+    const messageText = [
+      `Hello Saimoon! I'm reaching out from your portfolio website:`,
+      ``,
+      `👤 *Name:* ${sanitizedName}`,
+      `📧 *Email:* ${sanitizedEmail}`,
+      `🏷️ *Service:* ${sanitizedService}`,
+      `💼 *Project Details:* ${sanitizedDetails}`,
+      `💰 *Budget:* ${sanitizedBudget}`,
+      ``,
+      `Looking forward to collaborating with you!`,
+    ].join('\n');
+
+    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(messageText)}`;
+    setLastWaUrl(waUrl);
+    setSubmitted(true);
+
+    // Auto-redirect directly to WhatsApp in new tab
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Trust Indicators */}
-      <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0, 200, 83, 0.04)' }}>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full" style={{ background: '#00C853', boxShadow: '0 0 6px rgba(0, 200, 83, 0.4)' }} />
-          <span className="text-xs font-mono" style={{ color: '#5A7A6A' }}>Typically replies within 24h</span>
+    <div className="flex flex-col gap-6 pb-12">
+      {/* ── Status Header ── */}
+      <div
+        className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl border"
+        style={{
+          background: 'rgba(0, 200, 83, 0.05)',
+          borderColor: 'rgba(0, 200, 83, 0.18)',
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C853] opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00C853]" />
+          </span>
+          <span className="text-xs font-mono font-medium text-[#0A2614]">
+            Typically replies within 24h
+          </span>
         </div>
-        <div className="w-px h-4" style={{ background: 'rgba(0, 200, 83, 0.15)' }} />
-        <span className="text-xs font-mono" style={{ color: '#5A7A6A' }}>Based in Dhaka, Bangladesh</span>
+        <div className="text-xs font-mono text-[#3D664E]">
+          Dhaka, Bangladesh • Worldwide Remote
+        </div>
       </div>
 
-      {/* Progressive Form */}
-      <div>
-        {/* Step 1: Project Type */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <span
-              className="flex items-center justify-center rounded-full text-xs font-semibold"
-              style={{ width: 24, height: 24, background: step > 1 ? '#00C853' : 'rgba(0, 200, 83, 0.1)', color: step > 1 ? '#fff' : '#00C853' }}
+      {/* ── Submission Confirmation Banner ── */}
+      {submitted && (
+        <div
+          className="p-5 rounded-2xl border flex flex-col gap-3 animate-fade-in"
+          style={{
+            background: 'linear-gradient(135deg, rgba(0, 200, 83, 0.12) 0%, rgba(0, 168, 77, 0.06) 100%)',
+            borderColor: '#00C853',
+          }}
+        >
+          <div className="flex items-center gap-2.5 text-[#00873D] font-bold text-sm">
+            <Sparkles size={18} className="text-[#00C853]" />
+            <span>Redirecting to WhatsApp!</span>
+          </div>
+          <p className="text-xs leading-relaxed text-[#1F452E]">
+            Your project brief has been formatted and sent to WhatsApp. If the chat window didn't open automatically, click the button below:
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <a
+              href={lastWaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:scale-102"
+              style={{ background: '#00C853' }}
             >
-              {step > 1 ? <Check size={14} /> : '1'}
-            </span>
-            <span className="font-display font-medium text-sm" style={{ color: '#0A1A0F' }}>
-              What brings you here?
-            </span>
+              <MessageCircle size={14} />
+              Open WhatsApp Chat Now
+            </a>
+            <button
+              type="button"
+              onClick={() => setSubmitted(false)}
+              className="px-3 py-2 rounded-xl text-xs font-medium text-[#1F452E] hover:bg-black/5"
+            >
+              Edit Details
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Main Unified Form (All Visible at Once) ── */}
+      <form onSubmit={handleContinueWhatsApp} className="flex flex-col gap-5">
+        {/* Name and Email Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Name Field */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#0A2614] flex items-center gap-1.5">
+              <User size={13} className="text-[#00A84D]" />
+              Your Name <span className="text-[#00A84D]">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Alex Morgan"
+              className="w-full px-4 py-3 rounded-xl text-sm font-medium outline-none transition-all duration-200 border text-[#0A1A0F] bg-white focus:ring-2 focus:ring-[#00C853]/40 focus:border-[#00C853]"
+              style={{ borderColor: 'rgba(0, 160, 60, 0.25)' }}
+            />
           </div>
 
-          {step === 1 && (
-            <div className="flex flex-wrap gap-2 ml-8">
-              {PROJECT_TYPES.map(type => (
-                <button
-                  key={type}
-                  onClick={() => { setProjectType(type); setStep(2); }}
-                  className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5"
-                  style={{
-                    background: projectType === type ? '#00C853' : 'rgba(0, 200, 83, 0.06)',
-                    color: projectType === type ? '#fff' : '#5A7A6A',
-                    border: `1.5px solid ${projectType === type ? '#00C853' : 'rgba(0, 200, 83, 0.12)'}`,
-                  }}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Email Field */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#0A2614] flex items-center gap-1.5">
+              <AtSign size={13} className="text-[#00A84D]" />
+              Email Address <span className="text-[#00A84D]">*</span>
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g. alex@example.com"
+              className="w-full px-4 py-3 rounded-xl text-sm font-medium outline-none transition-all duration-200 border text-[#0A1A0F] bg-white focus:ring-2 focus:ring-[#00C853]/40 focus:border-[#00C853]"
+              style={{ borderColor: 'rgba(0, 160, 60, 0.25)' }}
+            />
+          </div>
         </div>
 
-        {/* Step 2: Description + Timeline */}
-        {step >= 2 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span
-                className="flex items-center justify-center rounded-full text-xs font-semibold"
-                style={{ width: 24, height: 24, background: step > 2 ? '#00C853' : 'rgba(0, 200, 83, 0.1)', color: step > 2 ? '#fff' : '#00C853' }}
-              >
-                {step > 2 ? <Check size={14} /> : '2'}
-              </span>
-              <span className="font-display font-medium text-sm" style={{ color: '#0A1A0F' }}>
-                Tell me about your project
-              </span>
-            </div>
-
-            {step === 2 && (
-              <div className="ml-8 flex flex-col gap-4">
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Briefly describe your project, goals, and any specific requirements..."
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none transition-all duration-200 focus:ring-2"
-                  style={{
-                    background: 'rgba(0, 200, 83, 0.04)',
-                    color: '#0A1A0F',
-                    border: '1px solid rgba(0, 200, 83, 0.12)',
+        {/* Service Category Selection */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#0A2614] flex items-center gap-1.5">
+            <Sparkles size={13} className="text-[#00A84D]" />
+            What are you looking to build?
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {SERVICES.map((srv) => {
+              const isSelected = selectedService === srv;
+              return (
+                <button
+                  key={srv}
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setSelectedService(srv);
                   }}
-                />
-                <div>
-                  <span className="text-xs font-mono uppercase tracking-wider mb-2 block" style={{ color: '#5A7A6A' }}>Timeline</span>
-                  <div className="flex flex-wrap gap-2">
-                    {TIMELINES.map(t => (
-                      <button
-                        key={t}
-                        onClick={() => { setTimeline(t); setStep(3); }}
-                        className="px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200"
-                        style={{
-                          background: timeline === t ? '#00C853' : 'rgba(0, 200, 83, 0.06)',
-                          color: timeline === t ? '#fff' : '#5A7A6A',
-                        }}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer border ${
+                    isSelected
+                      ? 'bg-[#00C853] text-white border-[#00C853] shadow-sm'
+                      : 'bg-white/80 text-[#2B4C38] border-[#00C853]/20 hover:border-[#00C853]/50 hover:bg-[#00C853]/10'
+                  }`}
+                >
+                  {srv}
+                </button>
+              );
+            })}
           </div>
-        )}
+        </div>
 
-        {/* Step 3: Contact Info */}
-        {step >= 3 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span
-                className="flex items-center justify-center rounded-full text-xs font-semibold"
-                style={{ width: 24, height: 24, background: 'rgba(0, 200, 83, 0.1)', color: '#00C853' }}
-              >
-                3
-              </span>
-              <span className="font-display font-medium text-sm" style={{ color: '#0A1A0F' }}>
-                How should I reach you?
-              </span>
-            </div>
+        {/* Project Details */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#0A2614] flex items-center gap-1.5">
+            <FileText size={13} className="text-[#00A84D]" />
+            Project Details & Goals <span className="text-[#00A84D]">*</span>
+          </label>
+          <textarea
+            required
+            rows={4}
+            value={projectDetails}
+            onChange={(e) => setProjectDetails(e.target.value)}
+            placeholder="Tell me about your project, key goals, timeline, or any reference links..."
+            className="w-full px-4 py-3 rounded-xl text-sm font-medium outline-none resize-none transition-all duration-200 border text-[#0A1A0F] bg-white focus:ring-2 focus:ring-[#00C853]/40 focus:border-[#00C853] leading-relaxed"
+            style={{ borderColor: 'rgba(0, 160, 60, 0.25)' }}
+          />
+        </div>
 
-            <div className="ml-8 flex flex-col gap-3">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all duration-200 focus:ring-2"
-                style={{
-                  background: 'rgba(0, 200, 83, 0.04)',
-                  color: '#0A1A0F',
-                  border: '1px solid rgba(0, 200, 83, 0.12)',
-                }}
-              />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
-                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all duration-200 focus:ring-2"
-                style={{
-                  background: 'rgba(0, 200, 83, 0.04)',
-                  color: '#0A1A0F',
-                  border: '1px solid rgba(0, 200, 83, 0.12)',
-                }}
-              />
-              <input
-                type="tel"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                placeholder="WhatsApp (optional)"
-                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all duration-200 focus:ring-2"
-                style={{
-                  background: 'rgba(0, 200, 83, 0.04)',
-                  color: '#0A1A0F',
-                  border: '1px solid rgba(0, 200, 83, 0.12)',
-                }}
-              />
-              <button
-                onClick={handleSubmit}
-                disabled={!name || !email}
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300 disabled:opacity-40 mt-2"
-                style={{
-                  background: '#00C853',
-                  color: '#fff',
-                  boxShadow: '0 4px 16px rgba(0, 200, 83, 0.25)',
-                }}
-              >
-                <Send size={16} />
-                Send Message
-              </button>
-            </div>
+        {/* Budget Selection */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#0A2614] flex items-center gap-1.5">
+            <DollarSign size={13} className="text-[#00A84D]" />
+            Estimated Budget
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {BUDGET_PRESETS.map((b) => {
+              const isSelected = budget === b && !customBudget;
+              return (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setBudget(b);
+                    setCustomBudget('');
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all duration-200 cursor-pointer border ${
+                    isSelected
+                      ? 'bg-[#00A84D] text-white border-[#00A84D] shadow-sm'
+                      : 'bg-white/80 text-[#2B4C38] border-[#00C853]/20 hover:border-[#00C853]/50 hover:bg-[#00C853]/10'
+                  }`}
+                >
+                  {b}
+                </button>
+              );
+            })}
           </div>
-        )}
-      </div>
+          <input
+            type="text"
+            value={customBudget}
+            onChange={(e) => setCustomBudget(e.target.value)}
+            placeholder="Or type custom budget (e.g. $2,000 USD / 50,000 BDT)..."
+            className="w-full px-3.5 py-2 rounded-lg text-xs font-mono outline-none border text-[#0A1A0F] bg-white focus:border-[#00C853] mt-1"
+            style={{ borderColor: 'rgba(0, 160, 60, 0.2)' }}
+          />
+        </div>
 
-      {/* Direct Contact Options */}
-      <div className="pt-6" style={{ borderTop: '1px solid rgba(0, 200, 83, 0.08)' }}>
-        <span className="text-xs font-mono uppercase tracking-wider mb-4 block" style={{ color: '#5A7A6A' }}>
+        {/* ── Big Continue to WhatsApp Action Button ── */}
+        <button
+          type="submit"
+          disabled={!name.trim() || !email.trim() || !projectDetails.trim()}
+          className="group relative flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl font-display font-bold text-base text-white transition-all duration-300 shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 mt-2"
+          style={{
+            background: 'linear-gradient(135deg, #00C853 0%, #009E3E 100%)',
+            boxShadow: '0 8px 24px rgba(0, 200, 83, 0.35)',
+          }}
+        >
+          <MessageCircle size={22} className="transition-transform group-hover:scale-110" />
+          <span>Continue to WhatsApp</span>
+          <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+        </button>
+        <p className="text-[11px] font-mono text-center text-[#477057] -mt-2">
+          Embeds your project brief directly into a WhatsApp chat with Saimoon
+        </p>
+      </form>
+
+      {/* ── Direct Reach Out Options ── */}
+      <div className="pt-6 border-t" style={{ borderColor: 'rgba(0, 160, 60, 0.15)' }}>
+        <span className="text-[11px] font-mono uppercase tracking-wider text-[#3D664E] font-bold mb-3 block">
           Or reach out directly
         </span>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2.5">
           <a
-            href="https://wa.me/8801778011899"
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5"
-            style={{ background: 'rgba(0, 200, 83, 0.08)', color: '#00C853' }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 border bg-white hover:bg-[#00C853]/10 hover:border-[#00C853] text-[#00873D]"
+            style={{ borderColor: 'rgba(0, 200, 83, 0.25)' }}
           >
-            <MessageCircle size={16} />
-            WhatsApp
+            <MessageCircle size={15} />
+            Direct WhatsApp
           </a>
+
           <a
             href="mailto:muhammadsaimoonhassan@gmail.com"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5"
-            style={{ background: 'rgba(0, 200, 83, 0.08)', color: '#00C853' }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 border bg-white hover:bg-[#00C853]/10 hover:border-[#00C853] text-[#00873D]"
+            style={{ borderColor: 'rgba(0, 200, 83, 0.25)' }}
           >
-            <Mail size={16} />
-            Email
+            <Mail size={15} />
+            Email Saimoon
           </a>
+
           <button
+            type="button"
             onClick={handleCopyEmail}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5"
-            style={{ background: 'rgba(0, 200, 83, 0.08)', color: '#00C853' }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 border bg-white hover:bg-[#00C853]/10 hover:border-[#00C853] text-[#00873D] cursor-pointer"
+            style={{ borderColor: 'rgba(0, 200, 83, 0.25)' }}
           >
-            {copied ? <CheckCheck size={16} /> : <Copy size={16} />}
-            {copied ? 'Copied!' : 'Copy Email'}
+            {copied ? <CheckCheck size={15} /> : <Copy size={15} />}
+            {copied ? 'Copied to Clipboard!' : 'Copy Email'}
           </button>
         </div>
       </div>

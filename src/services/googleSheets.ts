@@ -23,85 +23,112 @@ let cache: {
   timestamp: 0,
 };
 
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 30 * 1000; // 30 seconds for live Google Sheets updates
 
 // Placeholder data for demo
 const PLACEHOLDER_CONTENT: ContentItem[] = [
   // Video Editing
   {
-    id: '1', contentType: 'Video Editing', category: 'Commercial', title: 'Luminex — Brand Film',
-    subtitle: 'Premium brand film for smart lighting company', description: 'A cinematic brand film showcasing Luminex smart lighting products in elegant interior settings. Shot and edited with a focus on warmth and sophistication.',
-    thumbnailUrl: assetUrl('images/thumb-video-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Commercial', 'Brand Film'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-01-15', notes: ''
+    id: '1', contentType: 'Video Editing', category: 'Promotional Videos', title: 'Luminex — Brand Film',
+    subtitle: 'Promotional Videos', description: 'A cinematic brand film showcasing Luminex smart lighting products in elegant interior settings. Shot and edited with a focus on warmth and sophistication.',
+    thumbnailUrl: assetUrl('images/thumb-video-1.jpg'), previewImageUrl: '', videoUrl: 'https://www.youtube.com/watch?v=hQtqUoAib-I', websiteUrl: '', caseStudyUrl: '',
+    tags: ['Promotional Videos', 'Brand Film'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-01-15', notes: '',
+    album: 'Portfolio', videoFilter: 'Promotional Videos'
   },
   {
-    id: '2', contentType: 'Video Editing', category: 'Narrative', title: 'City of Echoes — Short Film',
-    subtitle: 'An atmospheric short film about urban solitude', description: 'A moody narrative short exploring themes of connection and isolation in a bustling metropolis.',
-    thumbnailUrl: assetUrl('images/thumb-video-2.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Narrative', 'Short Film'], featured: true, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-02-20', notes: ''
+    id: '2', contentType: 'Video Editing', category: 'TVC & OVC', title: 'City of Echoes — Short Film',
+    subtitle: 'TVC & OVC', description: 'A moody narrative short exploring themes of connection and isolation in a bustling metropolis.',
+    thumbnailUrl: assetUrl('images/thumb-video-2.jpg'), previewImageUrl: '', videoUrl: 'https://www.youtube.com/watch?v=mKOdf7hXpWY', websiteUrl: '', caseStudyUrl: '',
+    tags: ['TVC & OVC', 'Commercial'], featured: true, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-02-20', notes: '',
+    album: 'USA Clients', videoFilter: 'TVC & OVC'
   },
   {
-    id: '3', contentType: 'Video Editing', category: 'Music Video', title: 'Neon Dreams — Music Video',
-    subtitle: 'Abstract visual journey for electronic artist', description: 'Kinetic visual effects and light painting create a mesmerizing audio-visual experience.',
+    id: '3', contentType: 'Video Editing', category: 'Motion Graphics', title: 'Neon Dreams — Motion Visuals',
+    subtitle: 'Motion Graphics', description: 'Kinetic visual effects and light painting create a mesmerizing audio-visual experience.',
     thumbnailUrl: assetUrl('images/thumb-video-3.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Music Video', 'VFX'], featured: true, uploadStatus: 'Uploaded', displayOrder: 3, uploadDate: '2024-03-10', notes: ''
+    tags: ['Motion Graphics', 'VFX'], featured: true, uploadStatus: 'Uploaded', displayOrder: 3, uploadDate: '2024-03-10', notes: '',
+    album: 'UK Clients', videoFilter: 'Motion Graphics'
   },
   {
     id: '4', contentType: 'Video Editing', category: 'Documentary', title: "The Maker's Hand — Documentary",
-    subtitle: 'Craftsmanship documentary series', description: 'An intimate portrait of artisans and their dedication to traditional crafts in the modern age.',
+    subtitle: 'Documentary', description: 'An intimate portrait of artisans and their dedication to traditional crafts in the modern age.',
     thumbnailUrl: assetUrl('images/thumb-video-4.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Documentary'], featured: false, uploadStatus: 'Uploaded', displayOrder: 4, uploadDate: '2024-04-05', notes: ''
+    tags: ['Documentary'], featured: false, uploadStatus: 'Uploaded', displayOrder: 4, uploadDate: '2024-04-05', notes: '',
+    album: 'Canada Clients', videoFilter: 'Documentary'
   },
   {
-    id: '5', contentType: 'Video Editing', category: 'Reels & Shorts', title: 'Product Launch Reel',
-    subtitle: 'High-energy product launch for tech startup', description: 'Fast-paced social media reel designed for maximum engagement and conversion.',
+    id: '5', contentType: 'Video Editing', category: 'AI Contents', title: 'AI Automation Video Showcase',
+    subtitle: 'AI Contents', description: 'Next-generation AI generated visuals and video workflows for social media.',
     thumbnailUrl: assetUrl('images/thumb-video-5.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Reels', 'Product'], featured: false, uploadStatus: 'Uploaded', displayOrder: 5, uploadDate: '2024-05-12', notes: ''
+    tags: ['AI Contents', 'Reels'], featured: false, uploadStatus: 'Uploaded', displayOrder: 5, uploadDate: '2024-05-12', notes: '',
+    album: 'BD Clients', videoFilter: 'AI Contents'
   },
   {
     id: '6', contentType: 'Video Editing', category: 'Motion Graphics', title: 'Motion Typography Pack',
-    subtitle: 'Kinetic typography showcase', description: 'A collection of dynamic typography animations for commercial and editorial use.',
+    subtitle: 'Motion Graphics', description: 'A collection of dynamic typography animations for commercial and editorial use.',
     thumbnailUrl: assetUrl('images/thumb-video-6.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Motion Graphics', 'Typography'], featured: false, uploadStatus: 'Uploaded', displayOrder: 6, uploadDate: '2024-06-01', notes: ''
+    tags: ['Motion Graphics', 'Typography'], featured: false, uploadStatus: 'Uploaded', displayOrder: 6, uploadDate: '2024-06-01', notes: '',
+    album: 'Germany Clients', videoFilter: 'Motion Graphics'
+  },
+  {
+    id: '6b', contentType: 'Video Editing', category: 'Promotional Videos', title: 'Viral E-Commerce Ad',
+    subtitle: 'Promotional Videos', description: 'Cinematic ad tailored for fashion and lifestyle brand.',
+    thumbnailUrl: assetUrl('images/thumb-video-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    tags: ['Promotional Videos', 'Social'], featured: true, uploadStatus: 'Uploaded', displayOrder: 7, uploadDate: '2024-06-10', notes: '',
+    album: 'Indian & Pakistani Clients', videoFilter: 'Promotional Videos'
   },
   // UIUX Design
   {
-    id: '7', contentType: 'UIUX Design', category: 'Dashboard', title: 'Luminex Analytics Dashboard',
+    id: '7', contentType: 'UIUX Design', category: 'UI UX', title: 'Luminex Analytics Dashboard',
     subtitle: 'Complete analytics dashboard redesign', description: 'Redesigned the analytics experience resulting in 42% reduction in user task time.',
     thumbnailUrl: assetUrl('images/uiux-case-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Dashboard', 'SaaS'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-01-20', notes: ''
+    tags: ['Dashboard', 'SaaS'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-01-20', notes: '',
+    album: 'USA Clients', graphicsFilter: 'UI UX'
   },
   {
-    id: '8', contentType: 'UIUX Design', category: 'Mobile App', title: 'FlowState Mobile App',
+    id: '8', contentType: 'UIUX Design', category: 'UI UX', title: 'FlowState Mobile App',
     subtitle: 'Productivity app with focus timer', description: 'Designed a clean, intuitive productivity app that reached 50K+ downloads in the first month.',
     thumbnailUrl: assetUrl('images/uiux-case-2.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Mobile', 'Productivity'], featured: true, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-03-15', notes: ''
+    tags: ['Mobile', 'Productivity'], featured: true, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-03-15', notes: '',
+    album: 'Portfolio', graphicsFilter: 'UI UX'
   },
   // Illustrations
   {
-    id: '9', contentType: 'Illustration', category: 'Digital Art', title: 'Digital Fragments',
+    id: '9', contentType: 'Illustration', category: 'Illustration', title: 'Digital Fragments',
     subtitle: 'Abstract geometric portrait study', description: 'Exploring the intersection of human identity and digital fragmentation.',
     thumbnailUrl: assetUrl('images/illustration-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Digital Art', 'Abstract'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-02-10', notes: ''
+    tags: ['Digital Art', 'Abstract'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-02-10', notes: '',
+    album: 'Portfolio', graphicsFilter: 'Illustration'
   },
   {
-    id: '10', contentType: 'Illustration', category: 'Digital Art', title: 'Orbital Harmony',
+    id: '10', contentType: 'Illustration', category: 'Illustration', title: 'Orbital Harmony',
     subtitle: 'Cosmic orbital rings composition', description: 'A meditation on cosmic order and the beauty of orbital mechanics.',
     thumbnailUrl: assetUrl('images/illustration-2.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
-    tags: ['Digital Art', 'Cosmic'], featured: false, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-04-20', notes: ''
+    tags: ['Digital Art', 'Cosmic'], featured: false, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-04-20', notes: '',
+    album: 'UK Clients', graphicsFilter: 'Illustration'
+  },
+  // Post Design / Statics
+  {
+    id: '10b', contentType: 'Post Design', category: 'Statics', title: 'Social Media Campaign Creatives',
+    subtitle: 'High engagement brand creatives', description: 'Visual branding system and promotional social media posts for global brand.',
+    thumbnailUrl: assetUrl('images/post-design-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    tags: ['Statics', 'Social Media'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-05-01', notes: '',
+    album: 'BD Clients', graphicsFilter: 'Statics'
   },
   // Website Projects
   {
     id: '11', contentType: 'Website Project', category: 'SaaS', title: 'Luminex.io',
     subtitle: 'Brand website for smart lighting company', description: 'An immersive brand experience with 3D elements, achieving 92 Lighthouse performance score.',
     thumbnailUrl: assetUrl('images/web-project-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: 'https://luminex.io', caseStudyUrl: '',
-    tags: ['React', 'Next.js', 'GSAP', 'Three.js'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-01-25', notes: ''
+    tags: ['React', 'Next.js', 'GSAP', 'Three.js'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-01-25', notes: '',
+    album: 'USA Clients'
   },
   {
     id: '12', contentType: 'Website Project', category: 'Web App', title: 'EvoFit.co',
     subtitle: 'Fitness platform web application', description: 'Full-stack fitness tracking platform with social features and real-time data.',
     thumbnailUrl: assetUrl('images/web-project-2.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: 'https://evofit.co', caseStudyUrl: '',
-    tags: ['React', 'Node.js', 'MongoDB'], featured: true, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-03-20', notes: ''
+    tags: ['React', 'Node.js', 'MongoDB'], featured: true, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-03-20', notes: '',
+    album: 'Portfolio'
   },
   // Certifications
   {
@@ -181,17 +208,39 @@ class GoogleSheetsService {
         const rawType = (row['Type'] || '').trim();
         const rawStatus = (row['Status'] || '').trim();
         const rawLinkType = (row['Link Type'] || '').trim();
+        const rawVideoFilter = (row['Video Filter'] || row['Video Filter '] || row['video filter'] || row['VideoFilter'] || row['Filter'] || row['Filter '] || '').trim();
+        const rawGraphicsFilter = (row['Graphics Filter'] || row['Graphics Filter '] || row['graphics filter'] || row['GraphicsFilter'] || '').trim();
+        const rawAlbum = (row['Album'] || row['Album '] || row['album'] || row['Album Name'] || '').trim();
         
         if (rawStatus.toLowerCase() !== 'update') {
           return;
         }
 
         let contentType: any = 'Video Editing';
-        if (rawType.toLowerCase() === 'video') contentType = 'Video Editing';
-        else if (rawType.toLowerCase() === 'website') contentType = 'Website Project';
-        else if (rawType.toLowerCase() === 'ui ux' || rawType.toLowerCase() === 'ui/ux') contentType = 'UIUX Design';
-        else if (rawType.toLowerCase() === 'post') contentType = 'Post Design';
-        else if (rawType.toLowerCase() === 'images') contentType = 'Illustration';
+        if (rawType.toLowerCase() === 'video') {
+          contentType = 'Video Editing';
+        } else if (rawType.toLowerCase() === 'website') {
+          contentType = 'Website Project';
+        } else if (
+          rawType.toLowerCase() === 'ui ux' || 
+          rawType.toLowerCase() === 'ui/ux' || 
+          rawGraphicsFilter.toLowerCase() === 'ui ux' || 
+          rawGraphicsFilter.toLowerCase() === 'ui/ux'
+        ) {
+          contentType = 'UIUX Design';
+        } else if (
+          rawType.toLowerCase() === 'images' || 
+          rawType.toLowerCase() === 'illustration' || 
+          rawGraphicsFilter.toLowerCase() === 'illustration'
+        ) {
+          contentType = 'Illustration';
+        } else if (
+          rawType.toLowerCase() === 'post' || 
+          rawGraphicsFilter.toLowerCase().includes('static') || 
+          rawGraphicsFilter.toLowerCase().includes('post')
+        ) {
+          contentType = 'Post Design';
+        }
         
         const title = (row['Title '] || row['Title'] || '').trim() || `Item ${index + 1}`;
         const description = (row['Description '] || row['Description'] || '').trim();
@@ -227,24 +276,34 @@ class GoogleSheetsService {
           websiteUrl = link;
         }
 
+        let category = rawLinkType || 'General';
+        if (contentType === 'Video Editing' && rawVideoFilter) {
+          category = rawVideoFilter;
+        } else if (rawGraphicsFilter) {
+          category = rawGraphicsFilter;
+        }
+
         items.push({
           id: `sheet-${items.length}-${index}`,
           contentType: contentType,
-          category: rawLinkType || 'General',
+          category: category,
           title: title,
-          subtitle: rawLinkType,
+          subtitle: rawVideoFilter || rawGraphicsFilter || rawLinkType || category,
           description: description,
           thumbnailUrl: thumbnail,
           previewImageUrl: '',
           videoUrl: videoUrl,
           websiteUrl: websiteUrl,
           caseStudyUrl: '',
-          tags: [rawLinkType, rawType].filter(Boolean),
+          tags: [rawVideoFilter, rawGraphicsFilter, rawLinkType, rawType].filter(Boolean),
           featured: true,
           uploadStatus: 'Uploaded',
           displayOrder: order++,
           uploadDate: new Date().toISOString(),
-          notes: ''
+          notes: '',
+          album: rawAlbum,
+          videoFilter: rawVideoFilter,
+          graphicsFilter: rawGraphicsFilter,
         });
       });
       

@@ -48,13 +48,17 @@ interface AppState {
   // Intro Welcome Video
   introCompleted: boolean;
   setIntroCompleted: (completed: boolean) => void;
+
+  // Resume Modal
+  resumeModalOpen: boolean;
+  setResumeModalOpen: (open: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
   activeNode: null,
   setActiveNode: (node) => set({ activeNode: node }),
 
-  soundEnabled: false,
+  soundEnabled: true,
   toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
 
   reducedMotion: false,
@@ -88,4 +92,7 @@ export const useStore = create<AppState>((set) => ({
 
   introCompleted: false,
   setIntroCompleted: (completed) => set({ introCompleted: completed }),
+
+  resumeModalOpen: false,
+  setResumeModalOpen: (open) => set({ resumeModalOpen: open }),
 }));

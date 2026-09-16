@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, useId } from 'react';
-import { Briefcase, Film, Palette, Globe, Sparkles, Mail, MousePointerClick } from 'lucide-react';
+import { useCallback, useEffect, useState, useRef, useId } from 'react';
+import { Briefcase, Film, Palette, Globe, Sparkles, Mail, RotateCw } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useSound } from '@/hooks/useSound';
 import type { OrbitNodeId } from '@/types/content';
@@ -50,21 +50,24 @@ function useOrbitalSize() {
       const w = window.innerWidth;
       const h = window.innerHeight;
 
-      if (w < 480) {
-        setSize({ radius: 135, nodeSize: 56 });
+      if (w < 380) {
+        setSize({ radius: 104, nodeSize: 40 });
+      } else if (w < 480) {
+        setSize({ radius: 118, nodeSize: 44 });
       } else if (w < 640) {
-        setSize({ radius: 155, nodeSize: 62 });
+        setSize({ radius: 132, nodeSize: 50 });
       } else if (w < 768) {
-        setSize({ radius: 180, nodeSize: 68 });
+        setSize({ radius: 148, nodeSize: 54 });
       } else if (w < 1024) {
-        setSize({ radius: 205, nodeSize: 74 });
-      } else if (h < 700) {
-        // Shorter screen heights like 633px
-        setSize({ radius: 215, nodeSize: 76 });
+        setSize({ radius: 165, nodeSize: 60 });
+      } else if (h < 780) {
+        setSize({ radius: 185, nodeSize: 66 });
+      } else if (h < 900) {
+        setSize({ radius: 215, nodeSize: 74 });
       } else if (w < 1440) {
-        setSize({ radius: 245, nodeSize: 82 });
+        setSize({ radius: 235, nodeSize: 78 });
       } else {
-        setSize({ radius: 270, nodeSize: 88 });
+        setSize({ radius: 260, nodeSize: 84 });
       }
     };
 
@@ -96,6 +99,172 @@ export default function OrbitalNav() {
   const { playHoverTick, playClick, playPanelOpen } = useSound();
   const { radius: ORBIT_RADIUS, nodeSize: NODE_SIZE } = useOrbitalSize();
 
+  // Rotary Regulator Navigation for Orbit System (Touch/Mobile & Mouse Drag)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [rotationAngle, setRotationAngle] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const isRotatingRef = useRef(false);
+  const lastPointerAngleRef = useRef(0);
+  const totalRotatedDistanceRef = useRef(0);
+  const hasRotatedRef = useRef(false);
+  const lastTickAngleRef = useRef(0);
+  const velocityRef = useRef(0);
+  const lastMoveTimeRef = useRef(0);
+  const animFrameRef = useRef<number | null>(null);
+
+  // Clean up momentum glide animation on unmount and ensure global pointer release
+  useEffect(() => {
+    const handleGlobalRelease = () => {
+      if (isRotatingRef.current) {
+        isRotatingRef.current = false;
+        setIsDragging(false);
+        setTimeout(() => {
+          hasRotatedRef.current = false;
+        }, 80);
+      }
+    };
+    window.addEventListener('pointerup', handleGlobalRelease);
+    window.addEventListener('pointercancel', handleGlobalRelease);
+    window.addEventListener('blur', handleGlobalRelease);
+
+    return () => {
+      window.removeEventListener('pointerup', handleGlobalRelease);
+      window.removeEventListener('pointercancel', handleGlobalRelease);
+      window.removeEventListener('blur', handleGlobalRelease);
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, []);
+
+  // Pointer Down (Mobile Touch / Mouse Drag) - only starts tracking when pressed
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Only primary button (left click) or touch
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (!containerRef.current) return;
+
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const currentAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+
+    isRotatingRef.current = true;
+    lastPointerAngleRef.current = currentAngle;
+    totalRotatedDistanceRef.current = 0;
+    hasRotatedRef.current = false;
+    lastTickAngleRef.current = rotationAngle;
+    lastMoveTimeRef.current = performance.now();
+    velocityRef.current = 0;
+  };
+
+  // Pointer Move (Circular rotary tracking) - NEVER rotates on passive cursor hover
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    // STRICT GUARD: If mouse pointer is moving without the left button pressed (buttons === 0),
+    // this is pure cursor hover! It must NEVER rotate on hover!
+    if (e.pointerType === 'mouse' && (e.buttons & 1) === 0) {
+      if (isRotatingRef.current) {
+        isRotatingRef.current = false;
+        setIsDragging(false);
+      }
+      return;
+    }
+
+    if (!isRotatingRef.current || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const currentAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+
+    let delta = currentAngle - lastPointerAngleRef.current;
+    // Normalize angular wrap-around across -180 / +180
+    if (delta > 180) delta -= 360;
+    else if (delta < -180) delta += 360;
+
+    totalRotatedDistanceRef.current += Math.abs(delta);
+    
+    // Only engage drag rotation when intentional rotary movement is detected (> 4 degrees)
+    if (totalRotatedDistanceRef.current > 4) {
+      hasRotatedRef.current = true;
+      if (!isDragging) {
+        setIsDragging(true);
+        try {
+          if (!e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }
+        } catch {
+          // safe fallback
+        }
+      }
+    }
+
+    if (!hasRotatedRef.current) return;
+
+    const now = performance.now();
+    const dt = Math.max(1, now - lastMoveTimeRef.current);
+    // Angular velocity in deg per 16ms
+    velocityRef.current = (delta / dt) * 16;
+    lastMoveTimeRef.current = now;
+    lastPointerAngleRef.current = currentAngle;
+
+    setRotationAngle((prev) => {
+      const next = prev + delta;
+      // Mechanical detent sound tick every 15 degrees rotated like a physical regulator
+      if (Math.abs(next - lastTickAngleRef.current) >= 15) {
+        playHoverTick();
+        lastTickAngleRef.current = next;
+      }
+      return next;
+    });
+  };
+
+  // Pointer Up / Release with inertia glide
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isRotatingRef.current) return;
+    isRotatingRef.current = false;
+    setIsDragging(false);
+
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      // safe fallback
+    }
+
+    // Inertial momentum glide decay
+    if (hasRotatedRef.current) {
+      let vel = Math.max(-14, Math.min(14, velocityRef.current));
+      if (Math.abs(vel) > 0.3) {
+        const decay = () => {
+          vel *= 0.92;
+          setRotationAngle((prev) => {
+            const next = prev + vel;
+            if (Math.abs(next - lastTickAngleRef.current) >= 15) {
+              playHoverTick();
+              lastTickAngleRef.current = next;
+            }
+            return next;
+          });
+          if (Math.abs(vel) > 0.08) {
+            animFrameRef.current = requestAnimationFrame(decay);
+          }
+        };
+        animFrameRef.current = requestAnimationFrame(decay);
+      }
+
+      // Briefly keep hasRotatedRef true so child button click is suppressed after drag
+      setTimeout(() => {
+        hasRotatedRef.current = false;
+      }, 150);
+    }
+  };
+
   // Hide hint after first interaction
   useEffect(() => {
     if (activeNode) setShowHint(false);
@@ -107,7 +276,7 @@ export default function OrbitalNav() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Node position calculation around stationary ring
+  // Node position calculation around orbit ring
   const getNodePosition = useCallback((angleDeg: number) => {
     const angleRad = (angleDeg * Math.PI) / 180;
     return {
@@ -116,41 +285,35 @@ export default function OrbitalNav() {
     };
   }, [ORBIT_RADIUS]);
 
-  // Node click
+  // Node click - opens option panel, plays click and open audio, updates Zustand store
+  const lastClickTimeRef = useRef(0);
   const handleNodeClick = useCallback((nodeId: OrbitNodeId) => {
+    if (hasRotatedRef.current) return;
+    const now = performance.now();
+    if (now - lastClickTimeRef.current < 250) return; // Prevent duplicate rapid triggers
+    lastClickTimeRef.current = now;
+
     playClick();
-    setTimeout(() => playPanelOpen(), 200);
+    setTimeout(() => playPanelOpen(), 120);
     setActiveNode(nodeId);
   }, [playClick, playPanelOpen, setActiveNode]);
-
-  // Keyboard shortcuts 1-6
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (activeNode) {
-        if (e.key === 'Escape') setActiveNode(null);
-        return;
-      }
-      if (e.key >= '1' && e.key <= '6') {
-        const idx = parseInt(e.key) - 1;
-        handleNodeClick(nodes[idx].id);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeNode, handleNodeClick, setActiveNode]);
 
   const iconSize = NODE_SIZE < 60 ? 25 : NODE_SIZE < 75 ? 30 : NODE_SIZE < 85 ? 35 : 38;
   const labelFontSize = NODE_SIZE < 60 ? 10 : NODE_SIZE < 75 ? 11 : 12;
 
   return (
     <div
-      className="relative select-none"
+      ref={containerRef}
+      className="relative select-none touch-none cursor-grab active:cursor-grabbing"
       style={{ width: ORBIT_RADIUS * 2 + 80, height: ORBIT_RADIUS * 2 + 80 }}
       role="radiogroup"
       aria-label="Site navigation universe"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
-      {/* ── FIXED STATIONARY ORBIT RING (NO ROTATION) ── */}
+      {/* ── ROTATING REGULATOR ORBIT RING ── */}
       <div
         className="absolute rounded-full pointer-events-none"
         style={{
@@ -158,22 +321,26 @@ export default function OrbitalNav() {
           height: ORBIT_RADIUS * 2,
           top: 40,
           left: 40,
-          border: '1px solid rgba(0, 140, 50, 0.25)',
-          boxShadow: '0 0 25px rgba(0, 80, 30, 0.15)',
+          border: '1.5px solid rgba(0, 160, 60, 0.35)',
+          boxShadow: '0 0 25px rgba(0, 90, 35, 0.2)',
+          transform: `rotate(${rotationAngle}deg)`,
+          transformOrigin: 'center center',
+          transition: isDragging ? 'none' : 'transform 0.12s ease-out',
         }}
       >
-        {/* Glow dots along stationary ring */}
-        {Array.from({ length: 24 }).map((_, i) => {
-          const angle = (i / 24) * Math.PI * 2;
+        {/* Glow dots & tick notches along rotating regulator ring */}
+        {Array.from({ length: 36 }).map((_, i) => {
+          const angle = (i / 36) * Math.PI * 2;
+          const isPrimary = i % 6 === 0;
           return (
             <div
               key={i}
               className="absolute rounded-full"
               style={{
-                width: i % 4 === 0 ? 4 : 2,
-                height: i % 4 === 0 ? 4 : 2,
-                background: i % 4 === 0 ? '#00A84D' : 'rgba(0, 120, 45, 0.35)',
-                boxShadow: i % 4 === 0 ? '0 0 6px #00C853' : 'none',
+                width: isPrimary ? 5 : 2,
+                height: isPrimary ? 5 : 2,
+                background: isPrimary ? '#00FF66' : 'rgba(0, 140, 50, 0.4)',
+                boxShadow: isPrimary ? '0 0 8px #00FF66' : 'none',
                 top: '50%',
                 left: '50%',
                 transform: `translate(-50%, -50%) translate(${Math.cos(angle) * ORBIT_RADIUS}px, ${Math.sin(angle) * ORBIT_RADIUS}px)`,
@@ -183,10 +350,10 @@ export default function OrbitalNav() {
         })}
       </div>
 
-      {/* ── ORBIT NODES (STATIONARY POSITIONS AROUND PROFILE) ── */}
+      {/* ── ORBIT NODES (ROTATING LIKE A REGULATOR WHEEL) ── */}
       {nodes.map((node, index) => {
-        // 6 evenly spaced positions starting from top (-90 deg)
-        const nodeAngle = -90 + (360 / NODE_COUNT) * index;
+        // 6 evenly spaced positions rotated by rotationAngle
+        const nodeAngle = -90 + (360 / NODE_COUNT) * index + rotationAngle;
         const pos = getNodePosition(nodeAngle);
         const isActive = activeNode === node.id;
         const isHovered = hoveredNode === node.id;
@@ -204,6 +371,7 @@ export default function OrbitalNav() {
           >
             {/* Clickable Button Node */}
             <button
+              type="button"
               role="radio"
               aria-checked={isActive}
               aria-label={`Open ${node.label}`}
@@ -213,7 +381,15 @@ export default function OrbitalNav() {
                 height: NODE_SIZE,
                 transform: `scale(${isActive ? 1.2 : isHovered ? 1.12 : 1})`,
               }}
-              onClick={() => handleNodeClick(node.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNodeClick(node.id);
+              }}
+              onPointerUp={(e) => {
+                if (!hasRotatedRef.current && (e.button === 0 || e.pointerType === 'touch')) {
+                  handleNodeClick(node.id);
+                }
+              }}
               onMouseEnter={() => {
                 setHoveredNode(node.id);
                 playHoverTick();
@@ -339,37 +515,53 @@ export default function OrbitalNav() {
               )}
             </button>
 
-            {/* ── 3. BOLD TEXT LABEL — COMPLETELY STILL & HIGH CONTRAST ── */}
-            <span
-              className="mt-1.5 font-display font-bold uppercase whitespace-nowrap transition-all duration-300 pointer-events-none"
+            {/* ── 3. BOLD TEXT LABEL — CLICKABLE & HIGH CONTRAST ── */}
+            <button
+              type="button"
+              aria-label={`Open ${node.label}`}
+              className="mt-1.5 font-display font-bold uppercase whitespace-nowrap transition-all duration-300 cursor-pointer z-30 px-2 py-0.5 rounded focus:outline-none"
               style={{
                 fontSize: labelFontSize,
                 letterSpacing: '0.08em',
-                color: isActive ? '#00FF66' : isHovered ? '#FFFFFF' : 'rgba(255, 255, 255, 0.82)',
+                color: isActive ? '#00FF66' : isHovered ? '#FFFFFF' : 'rgba(255, 255, 255, 0.85)',
                 textShadow: isActive || isHovered
                   ? '0 0 10px rgba(0, 160, 60, 0.8), 0 2px 4px rgba(0,0,0,0.95)'
                   : '0 2px 4px rgba(0,0,0,0.95)',
               }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNodeClick(node.id);
+              }}
+              onPointerUp={(e) => {
+                if (!hasRotatedRef.current && (e.button === 0 || e.pointerType === 'touch')) {
+                  handleNodeClick(node.id);
+                }
+              }}
+              onMouseEnter={() => {
+                setHoveredNode(node.id);
+                playHoverTick();
+              }}
+              onMouseLeave={() => setHoveredNode(null)}
             >
               {node.label}
-            </span>
+            </button>
           </div>
         );
       })}
 
-      {/* Mobile tap helper instruction */}
+      {/* Mobile rotate & tap helper instruction */}
       <div
         className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 lg:hidden"
         style={{
-          bottom: -12,
+          bottom: -32,
           opacity: showHint ? 1 : 0,
           transition: 'opacity 0.6s ease',
           pointerEvents: 'none',
         }}
       >
-        <MousePointerClick size={13} className="text-[#00C853] animate-bounce" />
-        <span className="font-mono text-[9px] uppercase tracking-widest text-white/70">
-          Tap gear icons to explore
+        <RotateCw size={13} className="text-[#00C853] animate-spin" style={{ animationDuration: '6s' }} />
+        <span className="font-mono text-[9px] uppercase tracking-widest text-white/80">
+          Rotate orbit like regulator • Tap to explore
         </span>
       </div>
     </div>

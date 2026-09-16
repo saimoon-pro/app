@@ -4,28 +4,31 @@ import { assetUrl } from '@/lib/assetUrl';
 import gsap from 'gsap';
 
 function useProfileSize() {
-  const [size, setSize] = useState(320);
+  const [size, setSize] = useState(370);
 
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const min = Math.min(w, h);
 
-      if (min < 480) {
-        setSize(175);
-      } else if (min < 640) {
-        setSize(200);
-      } else if (min < 768) {
+      if (w < 380) {
+        setSize(142);
+      } else if (w < 480) {
+        setSize(162);
+      } else if (w < 640) {
+        setSize(180);
+      } else if (w < 768) {
+        setSize(205);
+      } else if (w < 1024) {
         setSize(230);
-      } else if (h < 700) {
-        setSize(270);
-      } else if (min < 1024) {
-        setSize(280);
+      } else if (h < 780) {
+        setSize(260);
+      } else if (h < 900) {
+        setSize(305);
       } else if (w < 1440) {
-        setSize(310);
+        setSize(335);
       } else {
-        setSize(340);
+        setSize(370);
       }
     };
 
@@ -56,11 +59,11 @@ export default function ProfileMachine() {
     return () => { tl.kill(); };
   }, [reducedMotion]);
 
-  // Inset ratios relative to size
-  const innerRingInset = Math.round(profileSize * 0.0625);  // 20/320
-  const decorRingInset = Math.round(profileSize * 0.125);   // 40/320
-  const imageInset = Math.round(profileSize * 0.25);         // 80/320
-  const waveSize = Math.round(profileSize * 0.3125);         // 100/320
+  // Proportions: Image takes up the maximum visual area, tightly framed by cyber rings
+  const cyanRingInset = Math.max(4, Math.round(profileSize * 0.022));
+  const innerDecorInset = Math.max(8, Math.round(profileSize * 0.042));
+  const imageInset = Math.max(12, Math.round(profileSize * 0.065));
+  const imageSize = profileSize - imageInset * 2;
 
   return (
     <div
@@ -72,16 +75,16 @@ export default function ProfileMachine() {
         opacity: reducedMotion ? 1 : 0,
       }}
     >
-      {/* Radio Wave Rings */}
+      {/* Radio Wave Rings expanding from behind the enlarged image */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         {[0, 0.8, 1.6, 2.4, 3.2].map((delay, i) => (
           <div
             key={i}
             className="absolute rounded-full"
             style={{
-              width: waveSize,
-              height: waveSize,
-              border: '1px solid rgba(0, 229, 255, 0.3)',
+              width: imageSize,
+              height: imageSize,
+              border: '1.5px solid rgba(0, 229, 255, 0.35)',
               animation: reducedMotion ? 'none' : `radio-wave 4s ease-out ${delay}s infinite`,
               opacity: reducedMotion ? 0.1 : undefined,
             }}
@@ -91,9 +94,9 @@ export default function ProfileMachine() {
 
       {/* Outer Ring with Tick Marks */}
       <div
-        className="absolute inset-0 rounded-full"
+        className="absolute inset-0 rounded-full pointer-events-none"
         style={{
-          border: '1px dashed rgba(0, 200, 83, 0.25)',
+          border: '1px dashed rgba(0, 200, 83, 0.3)',
           animation: reducedMotion ? 'none' : 'machine-rotate 30s linear infinite',
         }}
       >
@@ -101,53 +104,53 @@ export default function ProfileMachine() {
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: 'conic-gradient(from 0deg, transparent 0deg 2deg, rgba(0, 200, 83, 0.2) 2deg 4deg, transparent 4deg 8deg)',
-            WebkitMask: 'radial-gradient(transparent 62%, black 63%, black 64%, transparent 65%)',
-            mask: 'radial-gradient(transparent 62%, black 63%, black 64%, transparent 65%)',
+            background: 'conic-gradient(from 0deg, transparent 0deg 2deg, rgba(0, 200, 83, 0.25) 2deg 4deg, transparent 4deg 8deg)',
+            WebkitMask: 'radial-gradient(transparent 72%, black 73%, black 74%, transparent 75%)',
+            mask: 'radial-gradient(transparent 72%, black 73%, black 74%, transparent 75%)',
           }}
         />
       </div>
 
-      {/* Middle Counter-Rotating Ring */}
+      {/* Middle Counter-Rotating Cyan Accent Ring */}
       <div
-        className="absolute rounded-full"
+        className="absolute rounded-full pointer-events-none"
         style={{
-          inset: innerRingInset,
+          inset: cyanRingInset,
           border: '2px solid transparent',
-          borderTopColor: 'rgba(0, 229, 255, 0.4)',
-          borderBottomColor: 'rgba(0, 229, 255, 0.15)',
+          borderTopColor: 'rgba(0, 229, 255, 0.5)',
+          borderBottomColor: 'rgba(0, 229, 255, 0.2)',
           animation: reducedMotion ? 'none' : 'machine-rotate-reverse 15s linear infinite',
         }}
       />
 
       {/* Inner Decorative Ring */}
       <div
-        className="absolute rounded-full"
+        className="absolute rounded-full pointer-events-none"
         style={{
-          inset: decorRingInset,
-          border: '1px solid rgba(0, 200, 83, 0.15)',
-          background: 'radial-gradient(circle, rgba(0, 200, 83, 0.06) 0%, transparent 70%)',
+          inset: innerDecorInset,
+          border: '1px solid rgba(0, 200, 83, 0.25)',
+          background: 'radial-gradient(circle, rgba(0, 200, 83, 0.08) 0%, transparent 70%)',
         }}
       />
 
-      {/* Profile Image Wrapper */}
+      {/* Enlarged Prominent Profile Image Wrapper */}
       <div
-        className="absolute rounded-full overflow-hidden"
+        className="absolute rounded-full overflow-hidden transition-all duration-300"
         style={{
           inset: imageInset,
-          border: '2px solid rgba(0, 200, 83, 0.3)',
-          boxShadow: '0 0 40px rgba(0, 200, 83, 0.15), inset 0 0 30px rgba(0, 200, 83, 0.08)',
+          border: '2.5px solid rgba(0, 230, 118, 0.7)',
+          boxShadow: '0 0 35px rgba(0, 200, 83, 0.4), 0 0 70px rgba(0, 200, 83, 0.2), inset 0 0 25px rgba(0, 0, 0, 0.3)',
           animation: reducedMotion ? 'none' : 'profile-breathe 4s ease-in-out infinite',
         }}
       >
         <img
-          src={assetUrl('images/profile-photo.jpg')}
+          src={assetUrl('images/profile-photo.png')}
           alt="Muhammad Saimoon Hassan — Professional Video Editor, UI/UX Designer, Web Developer & AI Automation Expert from Bangladesh"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover select-none pointer-events-none"
           loading="eager"
           fetchPriority="high"
-          width={profileSize - imageInset * 2}
-          height={profileSize - imageInset * 2}
+          width={imageSize}
+          height={imageSize}
           decoding="async"
         />
       </div>

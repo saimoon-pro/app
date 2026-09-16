@@ -16,6 +16,9 @@ export interface ContentItem {
   displayOrder: number;
   uploadDate: string;
   notes: string;
+  album?: string;
+  videoFilter?: string;
+  graphicsFilter?: string;
 }
 
 export type ContentType =
