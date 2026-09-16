@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Layers, Image, Layout } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { assetUrl } from '@/lib/assetUrl';
 
 type Tab = 'uiux' | 'illustration' | 'post';
 
@@ -19,7 +20,7 @@ export default function DesignPanel() {
       title: c.title,
       subtitle: c.subtitle || c.category,
       description: c.description,
-      image: c.thumbnailUrl || '/images/uiux-case-1.jpg',
+      image: c.thumbnailUrl || assetUrl('images/uiux-case-1.jpg'),
       tags: c.tags.length > 0 ? c.tags : ['UIUX'],
       result: 'Delivered successfully',
     }));
@@ -30,7 +31,7 @@ export default function DesignPanel() {
       id: c.id,
       title: c.title,
       category: c.category,
-      image: c.thumbnailUrl || '/images/illustration-1.jpg',
+      image: c.thumbnailUrl || assetUrl('images/illustration-1.jpg'),
     }));
   }, [content]);
 
@@ -39,7 +40,7 @@ export default function DesignPanel() {
       id: c.id,
       title: c.title,
       category: c.category,
-      image: c.thumbnailUrl || '/images/post-design-1.jpg',
+      image: c.thumbnailUrl || assetUrl('images/post-design-1.jpg'),
     }));
   }, [content]);
 

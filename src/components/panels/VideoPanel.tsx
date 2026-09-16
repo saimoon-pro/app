@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Play, Clock, Filter, X } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { assetUrl } from '@/lib/assetUrl';
 
 // Helper to extract YouTube ID
 function getYouTubeId(url: string) {
@@ -14,15 +15,18 @@ export default function VideoPanel() {
   const content = useStore((s) => s.content);
   
   const videos = useMemo(() => {
-    return content.filter(c => c.contentType === 'Video Editing').map(c => ({
-      id: c.id,
-      title: c.title,
-      category: c.category,
-      duration: '0:00', // Default duration
-      thumbnail: c.thumbnailUrl || '/images/thumb-video-1.jpg',
-      description: c.description,
-      videoUrl: c.videoUrl,
-    }));
+    return content.filter(c => c.contentType === 'Video Editing').map(c => {
+      const yId = getYouTubeId(c.videoUrl);
+      return {
+        id: c.id,
+        title: c.title,
+        category: c.category,
+        duration: '0:00', // Default duration
+        thumbnail: yId ? `https://img.youtube.com/vi/${yId}/hqdefault.jpg` : (c.thumbnailUrl || assetUrl('images/thumb-video-1.jpg')),
+        description: c.description,
+        videoUrl: c.videoUrl,
+      };
+    });
   }, [content]);
 
   const categories = useMemo(() => {
@@ -177,10 +181,13 @@ export default function VideoPanel() {
           >
             <img
               src={video.thumbnail}
-              alt={video.title}
+              alt={`${video.title} - Video Editing by Muhammad Saimoon Hassan`}
               className="w-full h-full object-cover transition-transform duration-400"
               style={{ transform: hoveredVideo === video.id ? 'scale(1.03)' : 'scale(1)' }}
               loading="lazy"
+              decoding="async"
+              width={320}
+              height={180}
             />
 
             {/* Overlay */}

@@ -4,6 +4,7 @@
 
 import Papa from 'papaparse';
 import type { ContentItem, WebsiteSettings, ContactSettings } from '@/types/content';
+import { assetUrl } from '@/lib/assetUrl';
 
 // Google Sheet: https://docs.google.com/spreadsheets/d/1k8JqJooRpIbHBhgQS3-lSw502nNlwyokCX3P_oE3sHA
 // const SHEET_ID = '1k8JqJooRpIbHBhgQS3-lSw502nNlwyokCX3P_oE3sHA';
@@ -30,76 +31,76 @@ const PLACEHOLDER_CONTENT: ContentItem[] = [
   {
     id: '1', contentType: 'Video Editing', category: 'Commercial', title: 'Luminex — Brand Film',
     subtitle: 'Premium brand film for smart lighting company', description: 'A cinematic brand film showcasing Luminex smart lighting products in elegant interior settings. Shot and edited with a focus on warmth and sophistication.',
-    thumbnailUrl: '/images/thumb-video-1.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/thumb-video-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Commercial', 'Brand Film'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-01-15', notes: ''
   },
   {
     id: '2', contentType: 'Video Editing', category: 'Narrative', title: 'City of Echoes — Short Film',
     subtitle: 'An atmospheric short film about urban solitude', description: 'A moody narrative short exploring themes of connection and isolation in a bustling metropolis.',
-    thumbnailUrl: '/images/thumb-video-2.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/thumb-video-2.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Narrative', 'Short Film'], featured: true, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-02-20', notes: ''
   },
   {
     id: '3', contentType: 'Video Editing', category: 'Music Video', title: 'Neon Dreams — Music Video',
     subtitle: 'Abstract visual journey for electronic artist', description: 'Kinetic visual effects and light painting create a mesmerizing audio-visual experience.',
-    thumbnailUrl: '/images/thumb-video-3.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/thumb-video-3.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Music Video', 'VFX'], featured: true, uploadStatus: 'Uploaded', displayOrder: 3, uploadDate: '2024-03-10', notes: ''
   },
   {
     id: '4', contentType: 'Video Editing', category: 'Documentary', title: "The Maker's Hand — Documentary",
     subtitle: 'Craftsmanship documentary series', description: 'An intimate portrait of artisans and their dedication to traditional crafts in the modern age.',
-    thumbnailUrl: '/images/thumb-video-4.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/thumb-video-4.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Documentary'], featured: false, uploadStatus: 'Uploaded', displayOrder: 4, uploadDate: '2024-04-05', notes: ''
   },
   {
     id: '5', contentType: 'Video Editing', category: 'Reels & Shorts', title: 'Product Launch Reel',
     subtitle: 'High-energy product launch for tech startup', description: 'Fast-paced social media reel designed for maximum engagement and conversion.',
-    thumbnailUrl: '/images/thumb-video-5.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/thumb-video-5.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Reels', 'Product'], featured: false, uploadStatus: 'Uploaded', displayOrder: 5, uploadDate: '2024-05-12', notes: ''
   },
   {
     id: '6', contentType: 'Video Editing', category: 'Motion Graphics', title: 'Motion Typography Pack',
     subtitle: 'Kinetic typography showcase', description: 'A collection of dynamic typography animations for commercial and editorial use.',
-    thumbnailUrl: '/images/thumb-video-6.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/thumb-video-6.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Motion Graphics', 'Typography'], featured: false, uploadStatus: 'Uploaded', displayOrder: 6, uploadDate: '2024-06-01', notes: ''
   },
   // UIUX Design
   {
     id: '7', contentType: 'UIUX Design', category: 'Dashboard', title: 'Luminex Analytics Dashboard',
     subtitle: 'Complete analytics dashboard redesign', description: 'Redesigned the analytics experience resulting in 42% reduction in user task time.',
-    thumbnailUrl: '/images/uiux-case-1.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/uiux-case-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Dashboard', 'SaaS'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-01-20', notes: ''
   },
   {
     id: '8', contentType: 'UIUX Design', category: 'Mobile App', title: 'FlowState Mobile App',
     subtitle: 'Productivity app with focus timer', description: 'Designed a clean, intuitive productivity app that reached 50K+ downloads in the first month.',
-    thumbnailUrl: '/images/uiux-case-2.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/uiux-case-2.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Mobile', 'Productivity'], featured: true, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-03-15', notes: ''
   },
   // Illustrations
   {
     id: '9', contentType: 'Illustration', category: 'Digital Art', title: 'Digital Fragments',
     subtitle: 'Abstract geometric portrait study', description: 'Exploring the intersection of human identity and digital fragmentation.',
-    thumbnailUrl: '/images/illustration-1.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/illustration-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Digital Art', 'Abstract'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-02-10', notes: ''
   },
   {
     id: '10', contentType: 'Illustration', category: 'Digital Art', title: 'Orbital Harmony',
     subtitle: 'Cosmic orbital rings composition', description: 'A meditation on cosmic order and the beauty of orbital mechanics.',
-    thumbnailUrl: '/images/illustration-2.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/illustration-2.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: '', caseStudyUrl: '',
     tags: ['Digital Art', 'Cosmic'], featured: false, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-04-20', notes: ''
   },
   // Website Projects
   {
     id: '11', contentType: 'Website Project', category: 'SaaS', title: 'Luminex.io',
     subtitle: 'Brand website for smart lighting company', description: 'An immersive brand experience with 3D elements, achieving 92 Lighthouse performance score.',
-    thumbnailUrl: '/images/web-project-1.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: 'https://luminex.io', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/web-project-1.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: 'https://luminex.io', caseStudyUrl: '',
     tags: ['React', 'Next.js', 'GSAP', 'Three.js'], featured: true, uploadStatus: 'Uploaded', displayOrder: 1, uploadDate: '2024-01-25', notes: ''
   },
   {
     id: '12', contentType: 'Website Project', category: 'Web App', title: 'EvoFit.co',
     subtitle: 'Fitness platform web application', description: 'Full-stack fitness tracking platform with social features and real-time data.',
-    thumbnailUrl: '/images/web-project-2.jpg', previewImageUrl: '', videoUrl: '', websiteUrl: 'https://evofit.co', caseStudyUrl: '',
+    thumbnailUrl: assetUrl('images/web-project-2.jpg'), previewImageUrl: '', videoUrl: '', websiteUrl: 'https://evofit.co', caseStudyUrl: '',
     tags: ['React', 'Node.js', 'MongoDB'], featured: true, uploadStatus: 'Uploaded', displayOrder: 2, uploadDate: '2024-03-20', notes: ''
   },
   // Certifications
@@ -199,9 +200,9 @@ class GoogleSheetsService {
         
         // Handle fallback thumbnails
         if (!thumbnail || thumbnail.toLowerCase() === 'thumbnail') {
-            if (contentType === 'Video Editing') thumbnail = '/images/thumb-video-1.jpg';
-            else if (contentType === 'Website Project') thumbnail = '/images/web-project-1.jpg';
-            else thumbnail = '/images/illustration-1.jpg';
+            if (contentType === 'Video Editing') thumbnail = assetUrl('images/thumb-video-1.jpg');
+            else if (contentType === 'Website Project') thumbnail = assetUrl('images/web-project-1.jpg');
+            else thumbnail = assetUrl('images/illustration-1.jpg');
         } else if (thumbnail.includes('drive.google.com/file/d/')) {
             // Convert Google Drive view links to direct image links
             const match = thumbnail.match(/\/file\/d\/([^\/]+)/);

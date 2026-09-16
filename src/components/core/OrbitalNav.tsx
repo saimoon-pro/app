@@ -1,30 +1,70 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState, useId } from 'react';
 import { Briefcase, Film, Palette, Globe, Sparkles, Mail, MousePointerClick } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useSound } from '@/hooks/useSound';
-import gsap from 'gsap';
 import type { OrbitNodeId } from '@/types/content';
 
-// Responsive orbit sizing
+// 16-Tooth Mechanical Multi-Star Gear SVG Path with pronounced cog teeth
+const STAR_GEAR_PATH = (() => {
+  const teeth = 16;
+  const cx = 50;
+  const cy = 50;
+  const rOuter = 48.5;
+  const rInner = 34.0;
+  const step = (2 * Math.PI) / teeth;
+  const points: string[] = [];
+
+  for (let i = 0; i < teeth; i++) {
+    const baseAngle = i * step;
+    // 4 points per tooth to create pronounced mechanical star gear teeth
+    const a1 = baseAngle - step * 0.36;
+    const a2 = baseAngle - step * 0.17;
+    const a3 = baseAngle + step * 0.17;
+    const a4 = baseAngle + step * 0.36;
+
+    const x1 = (cx + rInner * Math.sin(a1)).toFixed(2);
+    const y1 = (cy - rInner * Math.cos(a1)).toFixed(2);
+    const x2 = (cx + rOuter * Math.sin(a2)).toFixed(2);
+    const y2 = (cy - rOuter * Math.cos(a2)).toFixed(2);
+    const x3 = (cx + rOuter * Math.sin(a3)).toFixed(2);
+    const y3 = (cy - rOuter * Math.cos(a3)).toFixed(2);
+    const x4 = (cx + rInner * Math.sin(a4)).toFixed(2);
+    const y4 = (cy - rInner * Math.cos(a4)).toFixed(2);
+
+    if (i === 0) points.push(`M ${x1} ${y1}`);
+    else points.push(`L ${x1} ${y1}`);
+    points.push(`L ${x2} ${y2}`);
+    points.push(`L ${x3} ${y3}`);
+    points.push(`L ${x4} ${y4}`);
+  }
+  points.push('Z');
+  return points.join(' ');
+})();
+
+// Enlarged orbit sizing and bigger icons across all screens
 function useOrbitalSize() {
-  const [size, setSize] = useState({ radius: 200, nodeSize: 56 });
+  const [size, setSize] = useState({ radius: 215, nodeSize: 76 });
 
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const min = Math.min(w, h);
 
-      if (min < 480) {
-        setSize({ radius: 110, nodeSize: 42 });
-      } else if (min < 640) {
-        setSize({ radius: 130, nodeSize: 46 });
-      } else if (min < 768) {
-        setSize({ radius: 155, nodeSize: 50 });
-      } else if (min < 1024) {
-        setSize({ radius: 175, nodeSize: 52 });
+      if (w < 480) {
+        setSize({ radius: 135, nodeSize: 56 });
+      } else if (w < 640) {
+        setSize({ radius: 155, nodeSize: 62 });
+      } else if (w < 768) {
+        setSize({ radius: 180, nodeSize: 68 });
+      } else if (w < 1024) {
+        setSize({ radius: 205, nodeSize: 74 });
+      } else if (h < 700) {
+        // Shorter screen heights like 633px
+        setSize({ radius: 215, nodeSize: 76 });
+      } else if (w < 1440) {
+        setSize({ radius: 245, nodeSize: 82 });
       } else {
-        setSize({ radius: 200, nodeSize: 56 });
+        setSize({ radius: 270, nodeSize: 88 });
       }
     };
 
@@ -48,17 +88,12 @@ const nodes: { id: OrbitNodeId; label: string; Icon: React.ComponentType<{ class
 ];
 
 export default function OrbitalNav() {
-  const ringRef = useRef<HTMLDivElement>(null);
-  const [rotation, setRotation] = useState(-90); // Start with first node at top
+  const instanceId = useId().replace(/[^a-zA-Z0-9]/g, '');
   const [hoveredNode, setHoveredNode] = useState<OrbitNodeId | null>(null);
   const [showHint, setShowHint] = useState(true);
   const activeNode = useStore((s) => s.activeNode);
   const setActiveNode = useStore((s) => s.setActiveNode);
-  const reducedMotion = useStore((s) => s.reducedMotion);
   const { playHoverTick, playClick, playPanelOpen } = useSound();
-  const isDragging = useRef(false);
-  const dragStart = useRef({ x: 0, rotation: 0 });
-  const autoRotateRef = useRef<gsap.core.Tween | null>(null);
   const { radius: ORBIT_RADIUS, nodeSize: NODE_SIZE } = useOrbitalSize();
 
   // Hide hint after first interaction
@@ -72,7 +107,7 @@ export default function OrbitalNav() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Get position for a node at given angle
+  // Node position calculation around stationary ring
   const getNodePosition = useCallback((angleDeg: number) => {
     const angleRad = (angleDeg * Math.PI) / 180;
     return {
@@ -81,156 +116,53 @@ export default function OrbitalNav() {
     };
   }, [ORBIT_RADIUS]);
 
-  // Auto-rotation
-  useEffect(() => {
-    if (reducedMotion || activeNode) return;
-
-    autoRotateRef.current = gsap.to({}, {
-      duration: 60,
-      repeat: -1,
-      ease: 'none',
-      onUpdate: function() {
-        if (!isDragging.current && !activeNode) {
-          setRotation(prev => prev + 0.1);
-        }
-      },
-    });
-
-    return () => {
-      autoRotateRef.current?.kill();
-    };
-  }, [reducedMotion, activeNode]);
-
-  // Drag handlers
-  const handleDragStart = useCallback((clientX: number) => {
-    isDragging.current = true;
-    dragStart.current = { x: clientX, rotation };
-    autoRotateRef.current?.pause();
-  }, [rotation]);
-
-  const handleDragMove = useCallback((clientX: number) => {
-    if (!isDragging.current) return;
-    const delta = (clientX - dragStart.current.x) * 0.3;
-    setRotation(dragStart.current.rotation + delta);
-  }, []);
-
-  const handleDragEnd = useCallback(() => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    // Snap to nearest 60-degree increment
-    const snapped = Math.round(rotation / 60) * 60;
-    gsap.to({ val: rotation }, {
-      val: snapped,
-      duration: 0.4,
-      ease: 'power2.out',
-      onUpdate: function() {
-        setRotation(this.targets()[0].val);
-      },
-    });
-  }, [rotation]);
-
-  // Mouse drag
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    handleDragStart(e.clientX);
-  }, [handleDragStart]);
-
-  // Touch drag
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    handleDragStart(e.touches[0].clientX);
-  }, [handleDragStart]);
-
-  // Global mouse/touch move
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => handleDragMove(e.clientX);
-    const onUp = () => handleDragEnd();
-    const onTouchMove = (e: TouchEvent) => handleDragMove(e.touches[0].clientX);
-    const onTouchEnd = () => handleDragEnd();
-
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchmove', onTouchMove);
-    window.addEventListener('touchend', onTouchEnd);
-
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-    };
-  }, [handleDragMove, handleDragEnd]);
-
-  // Wheel to rotate
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (activeNode) return;
-    setRotation(prev => prev + (e.deltaY > 0 ? 30 : -30));
-  }, [activeNode]);
-
   // Node click
   const handleNodeClick = useCallback((nodeId: OrbitNodeId) => {
-    if (isDragging.current) return;
     playClick();
     setTimeout(() => playPanelOpen(), 200);
     setActiveNode(nodeId);
   }, [playClick, playPanelOpen, setActiveNode]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts 1-6
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (activeNode) {
         if (e.key === 'Escape') setActiveNode(null);
         return;
       }
-
-      const currentIndex = nodes.findIndex(n => {
-        const nodeAngle = (rotation + 90 + (360 / NODE_COUNT) * nodes.indexOf(n)) % 360;
-        return Math.abs(nodeAngle) < 30 || Math.abs(nodeAngle - 360) < 30;
-      });
-
-      if (e.key === 'ArrowRight') {
-        setRotation(prev => prev + (360 / NODE_COUNT));
-      } else if (e.key === 'ArrowLeft') {
-        setRotation(prev => prev - (360 / NODE_COUNT));
-      } else if (e.key >= '1' && e.key <= '6') {
+      if (e.key >= '1' && e.key <= '6') {
         const idx = parseInt(e.key) - 1;
         handleNodeClick(nodes[idx].id);
-      } else if (e.key === 'Enter' && currentIndex >= 0) {
-        handleNodeClick(nodes[currentIndex].id);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeNode, rotation, handleNodeClick, setActiveNode]);
+  }, [activeNode, handleNodeClick, setActiveNode]);
 
-  const iconSize = NODE_SIZE < 46 ? 16 : NODE_SIZE < 52 ? 18 : 22;
-  const labelFontSize = NODE_SIZE < 46 ? 8 : NODE_SIZE < 52 ? 9 : 11;
+  const iconSize = NODE_SIZE < 60 ? 25 : NODE_SIZE < 75 ? 30 : NODE_SIZE < 85 ? 35 : 38;
+  const labelFontSize = NODE_SIZE < 60 ? 10 : NODE_SIZE < 75 ? 11 : 12;
 
   return (
     <div
       className="relative select-none"
       style={{ width: ORBIT_RADIUS * 2 + 80, height: ORBIT_RADIUS * 2 + 80 }}
-      onWheel={handleWheel}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
       role="radiogroup"
       aria-label="Site navigation universe"
     >
-      {/* Orbit Ring Visual */}
+      {/* ── FIXED STATIONARY ORBIT RING (NO ROTATION) ── */}
       <div
-        ref={ringRef}
-        className="absolute rounded-full"
+        className="absolute rounded-full pointer-events-none"
         style={{
           width: ORBIT_RADIUS * 2,
           height: ORBIT_RADIUS * 2,
           top: 40,
           left: 40,
-          border: '1px solid rgba(0, 200, 83, 0.12)',
-          transform: `rotate(${rotation}deg)`,
-          transition: isDragging.current ? 'none' : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-          cursor: 'grab',
+          border: '1px solid rgba(0, 140, 50, 0.25)',
+          boxShadow: '0 0 25px rgba(0, 80, 30, 0.15)',
         }}
       >
-        {/* Small dots along the ring */}
+        {/* Glow dots along stationary ring */}
         {Array.from({ length: 24 }).map((_, i) => {
           const angle = (i / 24) * Math.PI * 2;
           return (
@@ -238,9 +170,10 @@ export default function OrbitalNav() {
               key={i}
               className="absolute rounded-full"
               style={{
-                width: 3,
-                height: 3,
-                background: 'rgba(0, 200, 83, 0.2)',
+                width: i % 4 === 0 ? 4 : 2,
+                height: i % 4 === 0 ? 4 : 2,
+                background: i % 4 === 0 ? '#00A84D' : 'rgba(0, 120, 45, 0.35)',
+                boxShadow: i % 4 === 0 ? '0 0 6px #00C853' : 'none',
                 top: '50%',
                 left: '50%',
                 transform: `translate(-50%, -50%) translate(${Math.cos(angle) * ORBIT_RADIUS}px, ${Math.sin(angle) * ORBIT_RADIUS}px)`,
@@ -250,118 +183,193 @@ export default function OrbitalNav() {
         })}
       </div>
 
-      {/* Orbit Nodes */}
+      {/* ── ORBIT NODES (STATIONARY POSITIONS AROUND PROFILE) ── */}
       {nodes.map((node, index) => {
-        const nodeAngle = (rotation + (360 / NODE_COUNT) * index);
-        const pos = getNodePosition(nodeAngle - 90);
+        // 6 evenly spaced positions starting from top (-90 deg)
+        const nodeAngle = -90 + (360 / NODE_COUNT) * index;
+        const pos = getNodePosition(nodeAngle);
         const isActive = activeNode === node.id;
         const isHovered = hoveredNode === node.id;
         const { Icon } = node;
 
         return (
-          <button
+          <div
             key={node.id}
-            role="radio"
-            aria-checked={isActive}
-            aria-label={`Open ${node.label}`}
-            className="absolute flex items-center justify-center rounded-full transition-all duration-300 z-10 orbit-node-btn"
+            className="absolute flex flex-col items-center justify-center z-20"
             style={{
-              width: NODE_SIZE,
-              height: NODE_SIZE,
               top: '50%',
               left: '50%',
-              transform: `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px) scale(${isActive ? 1.2 : isHovered ? 1.15 : 1})`,
-              background: isActive ? '#00C853' : 'rgba(255, 255, 255, 0.95)',
-              border: `1.5px solid ${isActive ? '#00C853' : isHovered ? 'rgba(0, 200, 83, 0.4)' : 'rgba(0, 200, 83, 0.2)'}`,
-              boxShadow: isActive
-                ? '0 0 32px rgba(0, 200, 83, 0.35), 0 2px 12px rgba(0, 0, 0, 0.1)'
-                : isHovered
-                ? '0 0 24px rgba(0, 200, 83, 0.2), 0 2px 12px rgba(0, 0, 0, 0.06)'
-                : '0 2px 12px rgba(0, 0, 0, 0.06)',
-              cursor: 'pointer',
-              color: isActive ? '#fff' : '#0A1A0F',
+              transform: `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px)`,
             }}
-            onClick={() => handleNodeClick(node.id)}
-            onMouseEnter={() => {
-              setHoveredNode(node.id);
-              playHoverTick();
-            }}
-            onMouseLeave={() => setHoveredNode(null)}
           >
-            <Icon size={iconSize} strokeWidth={1.8} />
-
-            {/* Pulsing ring hint */}
-            {showHint && !isActive && (
-              <span
-                className="absolute inset-0 rounded-full pointer-events-none"
+            {/* Clickable Button Node */}
+            <button
+              role="radio"
+              aria-checked={isActive}
+              aria-label={`Open ${node.label}`}
+              className="relative flex items-center justify-center rounded-full transition-transform duration-300 cursor-pointer group"
+              style={{
+                width: NODE_SIZE,
+                height: NODE_SIZE,
+                transform: `scale(${isActive ? 1.2 : isHovered ? 1.12 : 1})`,
+              }}
+              onClick={() => handleNodeClick(node.id)}
+              onMouseEnter={() => {
+                setHoveredNode(node.id);
+                playHoverTick();
+              }}
+              onMouseLeave={() => setHoveredNode(null)}
+            >
+              {/* ── 1. CONTINUOUSLY ROTATING MULTI-STAR GEAR (DARK-TYPE GREEN) ── */}
+              <div
+                className="absolute inset-0 pointer-events-none flex items-center justify-center"
                 style={{
-                  border: '2px solid rgba(0, 200, 83, 0.4)',
-                  animation: 'orbit-hint-pulse 2s ease-in-out infinite',
-                  animationDelay: `${index * 0.3}s`,
-                }}
-              />
-            )}
-
-            {/* Hover tooltip: "Click to explore" */}
-            {isHovered && (
-              <span
-                className="absolute font-mono text-[9px] uppercase whitespace-nowrap pointer-events-none"
-                style={{
-                  top: -22,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  color: '#00C853',
-                  letterSpacing: '0.06em',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  padding: '2px 8px',
-                  borderRadius: 6,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                  animation: 'fade-in-up 0.2s ease-out',
+                  animation: 'machine-rotate 12s linear infinite',
                 }}
               >
-                Click to explore
-              </span>
-            )}
+                <svg
+                  viewBox="0 0 100 100"
+                  className="w-full h-full"
+                  style={{
+                    filter: isActive
+                      ? 'drop-shadow(0 0 12px rgba(0, 160, 60, 0.85)) drop-shadow(0 0 24px rgba(0, 90, 30, 0.6))'
+                      : isHovered
+                      ? 'drop-shadow(0 0 10px rgba(0, 140, 50, 0.75)) drop-shadow(0 0 18px rgba(0, 70, 25, 0.5))'
+                      : 'drop-shadow(0 0 8px rgba(0, 60, 20, 0.7)) drop-shadow(0 0 14px rgba(0, 40, 15, 0.45))',
+                  }}
+                >
+                  <defs>
+                    <radialGradient id={`gearGrad-${instanceId}-${node.id}`} cx="40%" cy="40%" r="60%">
+                      <stop offset="0%" stopColor="#00461E" />
+                      <stop offset="45%" stopColor="#002A12" />
+                      <stop offset="85%" stopColor="#001809" />
+                      <stop offset="100%" stopColor="#000F05" />
+                    </radialGradient>
+                    <linearGradient id={`gearStroke-${instanceId}-${node.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor={isActive ? "#00A84D" : "#005E27"} />
+                      <stop offset="100%" stopColor={isActive ? "#005224" : "#003615"} />
+                    </linearGradient>
+                  </defs>
 
-            {/* Node Label */}
+                  {/* Multi-Star Gear Cog Body */}
+                  <path
+                    d={STAR_GEAR_PATH}
+                    fill={`url(#gearGrad-${instanceId}-${node.id})`}
+                    stroke={`url(#gearStroke-${instanceId}-${node.id})`}
+                    strokeWidth="1.8"
+                    strokeLinejoin="round"
+                  />
+
+                  {/* Intermediate Beveled Rim */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="30"
+                    fill="#001608"
+                    stroke="#00421A"
+                    strokeWidth="1.2"
+                  />
+
+                  {/* Milled Tech Dash Ring */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="24"
+                    fill="none"
+                    stroke={isActive ? "rgba(0, 200, 83, 0.45)" : "rgba(0, 130, 45, 0.3)"}
+                    strokeWidth="1"
+                    strokeDasharray="3 3"
+                  />
+
+                  {/* Center Socket */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="19"
+                    fill="#000F05"
+                    stroke="#002B11"
+                    strokeWidth="1"
+                  />
+                </svg>
+              </div>
+
+              {/* ── 2. WHITE ICON ON TOP — COMPLETELY STILL & UPRIGHT (NO ROTATION) ── */}
+              <div
+                className="relative z-10 flex items-center justify-center pointer-events-none text-white transition-transform duration-200"
+                style={{
+                  transform: 'none', // Icon stays still
+                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8))',
+                }}
+              >
+                <Icon size={iconSize} strokeWidth={2.4} />
+              </div>
+
+              {/* Subtle Pulsing Hint Ripple on First Load */}
+              {showHint && !isActive && (
+                <span
+                  className="absolute inset-[-4px] rounded-full pointer-events-none"
+                  style={{
+                    border: '1.5px solid rgba(0, 140, 50, 0.5)',
+                    animation: 'orbit-hint-pulse 2.2s ease-in-out infinite',
+                    animationDelay: `${index * 0.3}s`,
+                  }}
+                />
+              )}
+
+              {/* Hover Tooltip Pill */}
+              {isHovered && (
+                <span
+                  className="absolute font-mono text-[9px] font-bold uppercase whitespace-nowrap pointer-events-none z-30"
+                  style={{
+                    top: -24,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    color: '#00FF66',
+                    letterSpacing: '0.08em',
+                    background: 'rgba(2, 12, 6, 0.95)',
+                    border: '1px solid rgba(0, 140, 50, 0.5)',
+                    padding: '2px 9px',
+                    borderRadius: 999,
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.7), 0 0 10px rgba(0,80,30,0.4)',
+                    animation: 'fade-in-up 0.2s ease-out',
+                  }}
+                >
+                  Explore {node.label}
+                </span>
+              )}
+            </button>
+
+            {/* ── 3. BOLD TEXT LABEL — COMPLETELY STILL & HIGH CONTRAST ── */}
             <span
-              className="absolute font-mono uppercase whitespace-nowrap transition-opacity duration-300"
+              className="mt-1.5 font-display font-bold uppercase whitespace-nowrap transition-all duration-300 pointer-events-none"
               style={{
                 fontSize: labelFontSize,
-                top: NODE_SIZE + 8,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                opacity: isActive || isHovered ? 1 : 0.6,
-                color: isActive ? '#00C853' : '#5A7A6A',
                 letterSpacing: '0.08em',
+                color: isActive ? '#00FF66' : isHovered ? '#FFFFFF' : 'rgba(255, 255, 255, 0.82)',
+                textShadow: isActive || isHovered
+                  ? '0 0 10px rgba(0, 160, 60, 0.8), 0 2px 4px rgba(0,0,0,0.95)'
+                  : '0 2px 4px rgba(0,0,0,0.95)',
               }}
             >
               {node.label}
             </span>
-          </button>
+          </div>
         );
       })}
 
-      {/* Mobile tap instruction */}
+      {/* Mobile tap helper instruction */}
       <div
         className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 lg:hidden"
         style={{
-          bottom: -8,
+          bottom: -12,
           opacity: showHint ? 1 : 0,
           transition: 'opacity 0.6s ease',
           pointerEvents: 'none',
         }}
       >
-        <MousePointerClick size={14} style={{ color: '#00C853' }} />
-        <span
-          className="font-mono uppercase whitespace-nowrap"
-          style={{
-            fontSize: 9,
-            color: '#5A7A6A',
-            letterSpacing: '0.1em',
-          }}
-        >
-          Tap icons to explore
+        <MousePointerClick size={13} className="text-[#00C853] animate-bounce" />
+        <span className="font-mono text-[9px] uppercase tracking-widest text-white/70">
+          Tap gear icons to explore
         </span>
       </div>
     </div>

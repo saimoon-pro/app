@@ -28,17 +28,17 @@ export default function ParticleField() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Create particles
-    const particleCount = window.innerWidth < 768 ? 20 : window.innerWidth < 1024 ? 40 : 70;
+    // Optimized particle count for high frame rate
+    const particleCount = window.innerWidth < 768 ? 15 : 28;
     const particles: Particle[] = [];
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.6,
-        vy: (Math.random() - 0.5) * 0.6,
-        size: Math.random() * 2 + 1.5,
-        opacity: Math.random() * 0.12 + 0.06,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        size: Math.random() * 1.8 + 1.2,
+        opacity: Math.random() * 0.1 + 0.05,
       });
     }
 
@@ -47,20 +47,26 @@ export default function ParticleField() {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
     };
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
 
     let raf: number;
     const animate = () => {
+      if (document.hidden) {
+        raf = requestAnimationFrame(animate);
+        return;
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (const p of particles) {
         if (!reducedMotion) {
-          // Mouse repulsion
+          // Optimized squared-distance repulsion check
           const dx = p.x - mouse.x;
           const dy = p.y - mouse.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 100) {
-            const force = (100 - dist) / 100 * 0.5;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 10000 && distSq > 0) {
+            const dist = Math.sqrt(distSq);
+            const force = (100 - dist) / 100 * 0.4;
             p.vx += (dx / dist) * force;
             p.vy += (dy / dist) * force;
           }

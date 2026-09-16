@@ -279,3 +279,44 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Resume FAB Animations */
+@keyframes resume-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+@keyframes resume-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes resume-viewer-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Resume FAB responsive position – avoids keyboard hint on desktop */
+.resume-fab-container {
+  bottom: 16px !important;
+  right: 16px !important;
+}
+
+@media (min-width: 1024px) {
+  .resume-fab-container {
+    bottom: 48px !important;
+    right: 24px !important;
+  }
+}

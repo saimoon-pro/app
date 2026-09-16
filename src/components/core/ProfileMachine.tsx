@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@/store/useStore';
+import { assetUrl } from '@/lib/assetUrl';
 import gsap from 'gsap';
 
 function useProfileSize() {
@@ -12,15 +13,19 @@ function useProfileSize() {
       const min = Math.min(w, h);
 
       if (min < 480) {
-        setSize(180);
+        setSize(175);
       } else if (min < 640) {
-        setSize(210);
+        setSize(200);
       } else if (min < 768) {
-        setSize(250);
+        setSize(230);
+      } else if (h < 700) {
+        setSize(270);
       } else if (min < 1024) {
         setSize(280);
+      } else if (w < 1440) {
+        setSize(310);
       } else {
-        setSize(320);
+        setSize(340);
       }
     };
 
@@ -136,10 +141,14 @@ export default function ProfileMachine() {
         }}
       >
         <img
-          src="/images/profile-photo.jpg"
-          alt="Muhammad Saimoon Hassan"
+          src={assetUrl('images/profile-photo.jpg')}
+          alt="Muhammad Saimoon Hassan — Professional Video Editor, UI/UX Designer, Web Developer & AI Automation Expert from Bangladesh"
           className="w-full h-full object-cover"
           loading="eager"
+          fetchPriority="high"
+          width={profileSize - imageInset * 2}
+          height={profileSize - imageInset * 2}
+          decoding="async"
         />
       </div>
     </div>

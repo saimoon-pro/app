@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { ExternalLink, Zap, Accessibility, Search, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { assetUrl } from '@/lib/assetUrl';
 
 function MetricGauge({ label, value, icon: Icon }: { label: string; value: number; icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }> }) {
   const radius = 22;
@@ -42,7 +43,7 @@ export default function WebPanel() {
       title: c.title,
       subtitle: c.subtitle || c.category,
       description: c.description,
-      image: c.thumbnailUrl || '/images/web-project-1.jpg',
+      image: c.thumbnailUrl || assetUrl('images/web-project-1.jpg'),
       tags: c.tags.length > 0 ? c.tags : ['Web'],
       link: c.websiteUrl,
       metrics: { performance: 92, accessibility: 100, seo: 95, bestPractices: 100 },
@@ -78,11 +79,14 @@ export default function WebPanel() {
               ) : (
                 <img
                   src={project.image}
-                  alt={project.title}
+                  alt={`${project.title} - Website Development by Muhammad Saimoon Hassan`}
                   className="w-full h-full object-cover transition-transform duration-500"
                   style={{ transform: hoveredProject === project.id ? 'scale(1.03)' : 'scale(1)' }}
                   loading="lazy"
-                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/web-project-1.jpg'; }}
+                  decoding="async"
+                  width={640}
+                  height={360}
+                  onError={(e) => { (e.target as HTMLImageElement).src = assetUrl('images/web-project-1.jpg'); }}
                 />
               )}
               

@@ -40,6 +40,14 @@ interface AppState {
   // Back button override hook
   backOverride: (() => boolean) | null;
   setBackOverride: (callback: (() => boolean) | null) => void;
+
+  // 3D Gear Regulator (1-6)
+  currentRegulator: number;
+  setCurrentRegulator: (regulator: number) => void;
+
+  // Intro Welcome Video
+  introCompleted: boolean;
+  setIntroCompleted: (completed: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -74,4 +82,10 @@ export const useStore = create<AppState>((set) => ({
 
   backOverride: null,
   setBackOverride: (callback) => set({ backOverride: callback }),
+
+  currentRegulator: 1,
+  setCurrentRegulator: (regulator) => set({ currentRegulator: regulator }),
+
+  introCompleted: false,
+  setIntroCompleted: (completed) => set({ introCompleted: completed }),
 }));

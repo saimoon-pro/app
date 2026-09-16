@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { sendToOrbit } from '@/services/orbitAI';
+import { assetUrl } from '@/lib/assetUrl';
 import type { OrbitResponse, VideoSuggestion } from '@/services/orbitAI';
 
 // ─── Quick prompts ────────────────────────────────────────────────────────────
@@ -50,7 +51,7 @@ function PortfolioCard({
   const ytId = isVideo ? getYouTubeId(item.videoUrl) : null;
   const thumb = ytId
     ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`
-    : item.thumbnailUrl || item.imageUrls?.[0] || '/images/thumb-video-1.jpg';
+    : item.thumbnailUrl || item.imageUrls?.[0] || assetUrl('images/thumb-video-1.jpg');
 
   return (
     <div
@@ -81,7 +82,7 @@ function PortfolioCard({
             transition: 'all 0.3s ease',
             display: 'block',
           }}
-          onError={(e) => { (e.target as HTMLImageElement).src = '/images/thumb-video-1.jpg'; }}
+          onError={(e) => { (e.target as HTMLImageElement).src = assetUrl('images/thumb-video-1.jpg'); }}
         />
 
         {/* Play overlay for videos */}

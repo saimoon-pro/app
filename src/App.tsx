@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, MessageCircle } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { sheetsService } from '@/services/googleSheets';
@@ -8,6 +8,10 @@ import OrbitalNav from '@/components/core/OrbitalNav';
 import ContentPanel from '@/components/core/ContentPanel';
 import CustomCursor from '@/components/core/CustomCursor';
 import ParticleField from '@/components/core/ParticleField';
+import ResumeButton from '@/components/core/ResumeButton';
+import BackgroundVideoSystem from '@/components/core/BackgroundVideoSystem';
+import GearRegulator from '@/components/core/GearRegulator';
+import LeadCaptureModal from '@/components/core/LeadCaptureModal';
 import gsap from 'gsap';
 
 const ROLES = [
@@ -18,19 +22,17 @@ const ROLES = [
   'AI Automation Founder',
 ];
 
-// Self-contained orbital section with explicit height so it never bleeds into siblings
-// Height = (radius * 2 + 80) for the orbital ring + 40px for bottom node label overhang
+// Self-contained orbital section for mobile with responsive height
 function MobileOrbital({ setCursorHover }: { setCursorHover: (v: boolean) => void }) {
-  const [orbitalHeight, setOrbitalHeight] = useState(400);
+  const [orbitalHeight, setOrbitalHeight] = useState(440);
 
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
-      // OrbitalNav total size = radius*2 + 80; add ~40px for label text below bottom node
-      if (w < 400) setOrbitalHeight(340);        // radius=110 → 300 + 40
-      else if (w < 480) setOrbitalHeight(360);   // radius=110 → 300 + 60
-      else if (w < 600) setOrbitalHeight(400);   // radius=130 → 340 + 60
-      else setOrbitalHeight(450);                // radius=155 → 390 + 60
+      if (w < 400) setOrbitalHeight(380);
+      else if (w < 480) setOrbitalHeight(420);
+      else if (w < 640) setOrbitalHeight(470);
+      else setOrbitalHeight(520);
     };
     update();
     window.addEventListener('resize', update);
@@ -80,12 +82,6 @@ export default function App() {
       }
     };
     load();
-
-    const interval = sheetsService.startPolling(() => {
-      sheetsService.getContent().then(setContent);
-    });
-
-    return () => clearInterval(interval);
   }, [setContent, setIsLoading]);
 
   // Entrance animation
@@ -144,54 +140,43 @@ export default function App() {
     return () => clearInterval(interval);
   }, [reducedMotion]);
 
-  // Mouse move for cursor tracking
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    useStore.getState().setCursorPos({ x: e.clientX, y: e.clientY });
-  }, []);
-
   return (
     <div
-      className="relative w-full h-screen overflow-hidden"
-      style={{ background: '#F8FAFB' }}
-      onMouseMove={handleMouseMove}
+      className="relative w-full h-screen overflow-hidden select-none"
+      style={{ background: '#050c07' }}
     >
-      {/* Ambient Background */}
+      {/* ── CINEMATIC DYNAMIC VIDEO BACKGROUND SYSTEM ── */}
+      <BackgroundVideoSystem />
+
+      {/* Ambient Radial Accent */}
       <div
         className="bg-gradient-wash absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 40% 50%, rgba(0, 200, 83, 0.04) 0%, transparent 50%)',
+          background: 'radial-gradient(circle at 40% 50%, rgba(0, 200, 83, 0.08) 0%, transparent 60%)',
           opacity: 0,
         }}
       />
 
       <ParticleField />
 
-      <div
-        className="absolute inset-0 pointer-events-none z-[1]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          opacity: 0.015,
-        }}
-      />
-
       {/* ===================== MOBILE LAYOUT (< 1024px) ===================== */}
-      <div className="relative z-10 flex flex-col items-center h-full lg:hidden overflow-y-auto overflow-x-hidden mobile-layout-scroll">
+      <div className="relative z-10 flex flex-col items-center h-full lg:hidden overflow-y-auto overflow-x-hidden mobile-layout-scroll pb-24">
 
-        {/* ── TOP SPACER ── */}
-        <div style={{ height: 32, flexShrink: 0 }} />
+        {/* Top Spacer */}
+        <div style={{ height: 28, flexShrink: 0 }} />
 
-        {/* ── SECTION 1: Name · Designation · Role ── */}
+        {/* Name · Designation · Role */}
         <div className="flex flex-col items-center gap-2 px-6 text-center" style={{ flexShrink: 0 }}>
           <h1
-            className="font-display font-bold tracking-tight"
-            style={{ lineHeight: 1.08, color: '#0A1A0F' }}
+            className="font-display font-bold tracking-tight text-white"
+            style={{ lineHeight: 1.08, textShadow: '0 4px 20px rgba(0,0,0,0.9)' }}
           >
-            <span className="block" style={{ fontSize: 'clamp(32px, 9vw, 50px)' }}>
+            <span className="block" style={{ fontSize: 'clamp(32px, 8.5vw, 48px)' }}>
               {'Muhammad'.split('').map((char, i) => (
                 <span key={`m${i}`} className="name-letter inline-block" style={{ opacity: 0 }}>{char}</span>
               ))}
             </span>
-            <span className="block" style={{ fontSize: 'clamp(32px, 9vw, 50px)' }}>
+            <span className="block" style={{ fontSize: 'clamp(32px, 8.5vw, 48px)' }}>
               {'Saimoon Hassan'.split('').map((char, i) => (
                 <span key={`s${i}`} className="name-letter inline-block" style={{ opacity: 0 }}>
                   {char === ' ' ? '\u00A0' : char}
@@ -202,67 +187,67 @@ export default function App() {
 
           {/* Designation */}
           <div className="designation flex items-center gap-2" style={{ opacity: 0 }}>
-            <div style={{ width: 24, height: 1, background: '#00C853' }} />
-            <span className="font-display font-medium uppercase tracking-widest" style={{ fontSize: 11, color: '#00C853' }}>
+            <div style={{ width: 24, height: 1.5, background: '#00C853', boxShadow: '0 0 6px #00C853' }} />
+            <span className="font-display font-semibold uppercase tracking-widest text-[#00FF66]" style={{ fontSize: 11 }}>
               Creative Editor
             </span>
-            <div style={{ width: 24, height: 1, background: '#00C853' }} />
+            <div style={{ width: 24, height: 1.5, background: '#00C853', boxShadow: '0 0 6px #00C853' }} />
           </div>
 
           {/* Role Ticker */}
           <div className="role-ticker flex items-center gap-2" style={{ opacity: 0 }}>
             <span
-              className="font-mono uppercase tracking-widest px-2 py-0.5 rounded-full"
-              style={{ fontSize: 9, background: 'rgba(0, 200, 83, 0.08)', color: '#00C853' }}
+              className="font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-[#00C853]/40"
+              style={{ fontSize: 9, background: 'rgba(0, 200, 83, 0.15)', color: '#00FF66' }}
             >
               {ROLES[roleIndex]}
             </span>
-            <div className="flex gap-0.5">
+            <div className="flex gap-1">
               {ROLES.map((_, i) => (
                 <div key={i} className="rounded-full transition-all duration-300" style={{
-                  width: i === roleIndex ? 10 : 3, height: 3,
-                  background: i === roleIndex ? '#00C853' : 'rgba(0, 200, 83, 0.2)',
+                  width: i === roleIndex ? 12 : 3, height: 3,
+                  background: i === roleIndex ? '#00C853' : 'rgba(0, 200, 83, 0.3)',
+                  boxShadow: i === roleIndex ? '0 0 6px #00C853' : 'none',
                 }} />
               ))}
             </div>
           </div>
         </div>
 
-        {/* ── SPACER ── */}
-        <div style={{ height: 32, flexShrink: 0 }} />
+        {/* Spacer */}
+        <div style={{ height: 20, flexShrink: 0 }} />
 
-        {/* ── SECTION 2: "Services" headline ── */}
-        <div className="services-headline flex flex-col items-center gap-1" style={{ flexShrink: 0, opacity: 0 }}>
-          <span className="font-mono uppercase tracking-[0.22em]" style={{ fontSize: 9, color: 'rgba(90,122,106,0.5)' }}>
+        {/* "Services" headline */}
+        <div className="services-headline flex flex-col items-center gap-0.5" style={{ flexShrink: 0, opacity: 0 }}>
+          <span className="font-mono uppercase tracking-[0.22em] text-[#00C853]" style={{ fontSize: 9 }}>
             — explore my —
           </span>
-          <h2 className="font-display font-bold tracking-tight" style={{ fontSize: 'clamp(36px, 10vw, 52px)', color: '#0A1A0F', lineHeight: 1 }}>
+          <h2 className="font-display font-bold tracking-tight text-white" style={{ fontSize: 'clamp(32px, 8vw, 44px)', lineHeight: 1, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
             Services
           </h2>
         </div>
 
-        {/* ── SPACER ── */}
-        <div style={{ height: 24, flexShrink: 0 }} />
+        {/* Spacer */}
+        <div style={{ height: 16, flexShrink: 0 }} />
 
-        {/* ── SECTION 3: Profile + Orbital — explicit fixed height ── */}
+        {/* Profile + Orbital — enlarged responsive height */}
         <MobileOrbital setCursorHover={setCursorHover} />
 
-        {/* ── SPACER ── */}
-        <div style={{ height: 32, flexShrink: 0 }} />
+        {/* Spacer */}
+        <div style={{ height: 20, flexShrink: 0 }} />
 
-        {/* ── SECTION 4: Tagline ── */}
+        {/* Tagline */}
         <p
-          className="tagline text-center"
+          className="tagline text-center text-[#B0C8BF]"
           style={{
             flexShrink: 0,
             fontSize: 12,
-            maxWidth: 300,
+            maxWidth: 320,
             paddingLeft: 24,
             paddingRight: 24,
-            paddingBottom: 48,
-            color: '#5A7A6A',
             lineHeight: 1.75,
             opacity: 0,
+            textShadow: '0 2px 8px rgba(0,0,0,0.9)',
           }}
         >
           Where creativity meets technology. I craft visual experiences
@@ -270,12 +255,15 @@ export default function App() {
         </p>
       </div>
 
-      {/* ===================== DESKTOP LAYOUT (>= 1024px) ===================== */}
-      <div className="relative z-10 hidden lg:flex items-center h-full px-12 lg:px-20">
-        {/* Left: Hero Text — max-width keeps it clear of orbital icons */}
-        <div className="flex flex-col gap-4" style={{ maxWidth: 440, marginRight: 'auto' }}>
+      {/* ===================== DESKTOP SPLIT LAYOUT (>= 1024px) ===================== */}
+      <div className="relative z-10 hidden lg:grid lg:grid-cols-12 items-center h-full px-12 xl:px-20 2xl:px-28 pb-16">
+        {/* ── LEFT SIDE: HERO HEADLINE & DETAILS ── */}
+        <div className="col-span-6 flex flex-col gap-5 justify-center pr-6 max-w-xl">
           {/* Name - 2 lines */}
-          <h1 className="font-display font-bold tracking-tight" style={{ fontSize: 56, lineHeight: 1.05, color: '#0A1A0F' }}>
+          <h1
+            className="font-display font-bold tracking-tight text-white"
+            style={{ fontSize: 'clamp(46px, 4.4vw, 64px)', lineHeight: 1.04, textShadow: '0 4px 28px rgba(0,0,0,0.95)' }}
+          >
             <span className="block">
               {'Muhammad'.split('').map((char, i) => (
                 <span key={`dm${i}`} className="name-letter inline-block" style={{ opacity: 0 }}>{char}</span>
@@ -292,8 +280,8 @@ export default function App() {
 
           {/* Designation */}
           <div className="designation flex items-center gap-3" style={{ opacity: 0 }}>
-            <div style={{ width: 32, height: 1.5, background: '#00C853' }} />
-            <span className="font-display text-base font-medium uppercase tracking-[0.15em]" style={{ color: '#00C853' }}>
+            <div style={{ width: 36, height: 2, background: '#00C853', boxShadow: '0 0 10px #00C853' }} />
+            <span className="font-display text-base font-bold uppercase tracking-[0.2em] text-[#00FF66]" style={{ textShadow: '0 0 12px rgba(0,200,83,0.7)' }}>
               Creative Editor
             </span>
           </div>
@@ -301,41 +289,61 @@ export default function App() {
           {/* Role Ticker */}
           <div className="role-ticker flex items-center gap-3" style={{ opacity: 0 }}>
             <span
-              className="font-mono text-xs uppercase tracking-widest px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(0, 200, 83, 0.08)', color: '#00C853' }}
+              className="font-mono text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-[#00C853]/40 shadow-[0_0_15px_rgba(0,200,83,0.25)]"
+              style={{ background: 'rgba(0, 200, 83, 0.15)', color: '#00FF66' }}
             >
               {ROLES[roleIndex]}
             </span>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               {ROLES.map((_, i) => (
                 <div key={i} className="rounded-full transition-all duration-300" style={{
-                  width: i === roleIndex ? 16 : 4, height: 4,
-                  background: i === roleIndex ? '#00C853' : 'rgba(0, 200, 83, 0.2)',
+                  width: i === roleIndex ? 18 : 4, height: 4,
+                  background: i === roleIndex ? '#00C853' : 'rgba(0, 200, 83, 0.3)',
+                  boxShadow: i === roleIndex ? '0 0 8px #00C853' : 'none',
                 }} />
               ))}
             </div>
           </div>
 
           {/* Tagline */}
-          <p className="tagline text-sm" style={{ color: '#5A7A6A', lineHeight: 1.6, opacity: 0 }}>
+          <p
+            className="tagline text-sm text-[#C2D8CE] leading-relaxed max-w-md"
+            style={{ opacity: 0, textShadow: '0 2px 10px rgba(0,0,0,0.95)' }}
+          >
             Where creativity meets technology. I craft visual experiences
             that move people — from pixels to motion to intelligent systems.
           </p>
-        </div>
 
-        {/* Center: Services headline + Profile + Orbital */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-          {/* Services Headline */}
-          <div className="services-headline flex flex-col items-center gap-1 mb-12" style={{ opacity: 0 }}>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: 'rgba(90, 122, 106, 0.5)' }}>
-              — explore my —
-            </span>
-            <h2 className="font-display text-3xl font-bold tracking-tight" style={{ color: '#0A1A0F' }}>
-              Services
+          {/* Services Section Header in Left Hero Column */}
+          <div className="services-headline flex flex-col gap-1 pt-1" style={{ opacity: 0 }}>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#00A84D] shadow-[0_0_8px_#00C853] animate-pulse" />
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-[#00A84D]">
+                — EXPLORE MY UNIVERSE —
+              </span>
+            </div>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.9)' }}>
+              Services & Disciplines
             </h2>
           </div>
 
-          <div className="relative">
+          {/* Quick Direct Action CTA */}
+          <div className="flex items-center gap-3 pt-1">
+            <a
+              href="https://wa.me/8801778011899"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00C853]/20 hover:bg-[#00C853] text-[#00FF66] hover:text-black border border-[#00C853]/50 font-mono text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(0,200,83,0.2)] cursor-pointer"
+            >
+              <MessageCircle size={15} />
+              <span>Direct WhatsApp</span>
+            </a>
+          </div>
+        </div>
+
+        {/* ── RIGHT SIDE: PROFILE MACHINE & GLOWING STATIONARY ORBITAL OPTIONS (ZERO OVERLAP) ── */}
+        <div className="col-span-6 flex items-center justify-center relative">
+          <div className="relative flex items-center justify-center">
             <ProfileMachine />
             <div
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -348,16 +356,22 @@ export default function App() {
         </div>
       </div>
 
-      {/* Sound Toggle */}
+      {/* ── 3D GEAR REGULATOR AT BOTTOM CENTER ── */}
+      <GearRegulator />
+
+      {/* ── TIMED RELAX LEAD CAPTURE POPUP (3 MINUTE RECURRING) ── */}
+      <LeadCaptureModal />
+
+      {/* Sound Toggle Button */}
       <button
         onClick={toggleSound}
-        className="fixed bottom-4 left-4 lg:bottom-6 lg:left-6 z-50 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
+        className="fixed bottom-4 left-4 lg:bottom-6 lg:left-6 z-50 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110 cursor-pointer"
         style={{
-          width: 36, height: 36,
-          background: 'rgba(255, 255, 255, 0.8)',
-          border: '1px solid rgba(0, 200, 83, 0.15)',
-          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
-          color: soundEnabled ? '#00C853' : '#5A7A6A',
+          width: 38, height: 38,
+          background: 'rgba(5, 15, 8, 0.85)',
+          border: '1.5px solid rgba(0, 200, 83, 0.4)',
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0,200,83,0.2)',
+          color: soundEnabled ? '#00FF66' : '#8BAAA0',
         }}
         aria-label={soundEnabled ? 'Mute sound' : 'Enable sound'}
       >
@@ -366,14 +380,55 @@ export default function App() {
 
       {/* Keyboard Hint */}
       <div
-        className="fixed bottom-6 right-6 z-50 font-mono text-[10px] uppercase tracking-wider hidden lg:block"
-        style={{ color: 'rgba(90, 122, 106, 0.4)' }}
+        className="fixed bottom-6 right-6 z-50 font-mono text-[10px] uppercase tracking-wider hidden xl:block"
+        style={{ color: 'rgba(255, 255, 255, 0.4)' }}
       >
         Press 1-6 to navigate
       </div>
 
+      <ResumeButton />
+
       <ContentPanel />
       <CustomCursor />
+
+      {/* ═══════════ HIDDEN SEO SEMANTIC CONTENT ═══════════ */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          padding: 0,
+          margin: -1,
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          borderWidth: 0,
+        }}
+      >
+        <article itemScope itemType="https://schema.org/Person">
+          <h1 itemProp="name">Muhammad Saimoon Hassan</h1>
+          <p itemProp="description">
+            Muhammad Saimoon Hassan (Saimoon) is a top-rated professional video editor, creative designer,
+            UI/UX designer, website developer, AI automation expert, content writer, and digital service
+            provider from Dhaka, Bangladesh. Founder of Helixonix Corp. With over 340 commercial videos
+            edited and 25+ websites delivered, Saimoon provides world-class digital services to clients
+            worldwide.
+          </p>
+          <span itemProp="jobTitle">Senior Video Editor</span>
+          <span itemProp="jobTitle">Creative Designer</span>
+          <span itemProp="jobTitle">UI/UX Designer</span>
+          <span itemProp="jobTitle">Full Stack Web Developer</span>
+          <span itemProp="jobTitle">AI Automation Founder</span>
+          <span itemProp="jobTitle">Content Writer</span>
+          <span itemProp="email">muhammadsaimoonhassan@gmail.com</span>
+          <span itemProp="telephone">+8801778011899</span>
+          <div itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
+            <span itemProp="addressLocality">Dhaka</span>
+            <span itemProp="addressCountry">Bangladesh</span>
+          </div>
+        </article>
+      </div>
     </div>
   );
 }
