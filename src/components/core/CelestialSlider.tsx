@@ -119,7 +119,7 @@ export default function CelestialSlider() {
 
   return (
     <div
-      className="fixed top-2 sm:top-3 lg:top-4 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center select-none"
+      className="hidden md:flex fixed top-2 sm:top-3 lg:top-4 left-1/2 -translate-x-1/2 z-40 flex-col items-center select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

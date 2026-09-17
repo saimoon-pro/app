@@ -77,34 +77,46 @@ export default function BackgroundVideoSystem() {
     ? CONTACT_VIDEO
     : REGULATOR_VIDEOS[currentRegulator] || REGULATOR_VIDEOS[1];
 
-  // Auto-play intro video with audio, handling browser autoplay policies gracefully
+  const soundEnabled = useStore((s) => s.soundEnabled);
+  const toggleSound = useStore((s) => s.toggleSound);
+
+  // Sync intro video audio with global soundEnabled
+  useEffect(() => {
+    const vid = welcomeVideoRef.current;
+    if (vid) {
+      vid.muted = !soundEnabled;
+      setIsAudioMuted(!soundEnabled);
+    }
+  }, [soundEnabled]);
+
+  // Auto-play intro video with audio ON by default, handling browser autoplay policies
   useEffect(() => {
     if (introState !== 'welcome') return;
     const vid = welcomeVideoRef.current;
     if (!vid) return;
 
     vid.volume = 1.0;
-    vid.muted = false;
+    vid.muted = !soundEnabled;
 
     const playPromise = vid.play();
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          setIsAudioMuted(false);
+          setIsAudioMuted(!soundEnabled);
         })
         .catch((err) => {
           // Autoplay policy prevented unmuted audio playback without user gesture
-          console.warn('Browser autoplay prevented audio. Playing muted until interaction:', err);
+          console.warn('Browser autoplay required user gesture for unmuted audio. Starting muted until interaction:', err);
           vid.muted = true;
           vid.play().catch(() => {});
           setIsAudioMuted(true);
         });
     }
 
-    // Touch/click/key anywhere immediately enables full audio
+    // Touch/click/key/scroll/pointerdown anywhere immediately enables full audio if soundEnabled is true
     const unlockSound = () => {
       const v = welcomeVideoRef.current;
-      if (v && introState === 'welcome') {
+      if (v && introState === 'welcome' && useStore.getState().soundEnabled) {
         v.muted = false;
         v.volume = 1.0;
         v.play().catch(() => {});
@@ -114,16 +126,23 @@ export default function BackgroundVideoSystem() {
     };
 
     window.addEventListener('pointerdown', unlockSound, { once: true });
+    window.addEventListener('click', unlockSound, { once: true });
+    window.addEventListener('touchstart', unlockSound, { once: true });
     window.addEventListener('keydown', unlockSound, { once: true });
+    window.addEventListener('wheel', unlockSound, { once: true });
 
     return () => {
       window.removeEventListener('pointerdown', unlockSound);
+      window.removeEventListener('click', unlockSound);
+      window.removeEventListener('touchstart', unlockSound);
       window.removeEventListener('keydown', unlockSound);
+      window.removeEventListener('wheel', unlockSound);
     };
-  }, [introState]);
+  }, [introState, soundEnabled]);
 
   const toggleIntroSound = useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    toggleSound();
     const vid = welcomeVideoRef.current;
     if (!vid) return;
 
@@ -137,12 +156,12 @@ export default function BackgroundVideoSystem() {
       vid.muted = true;
       setIsAudioMuted(true);
     }
-  }, [isAudioMuted]);
+  }, [isAudioMuted, toggleSound]);
 
   const handleIntroOverlayClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button')) return;
     const vid = welcomeVideoRef.current;
-    if (vid && (vid.muted || isAudioMuted)) {
+    if (vid && soundEnabled) {
       vid.muted = false;
       vid.volume = 1.0;
       vid.play().catch(() => {});
