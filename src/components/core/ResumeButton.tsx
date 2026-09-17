@@ -11,6 +11,8 @@ export default function ResumeButton() {
 
   const isViewing = useStore((s) => s.resumeModalOpen);
   const setIsViewing = useStore((s) => s.setResumeModalOpen);
+  const timeOfDay = useStore((s) => s.timeOfDay);
+  const isDay = timeOfDay >= 7.5 && timeOfDay <= 17.5;
 
   // Close menu on outside click
   useEffect(() => {
@@ -72,12 +74,14 @@ export default function ResumeButton() {
         >
           <div
             style={{
-              background: 'rgba(6, 22, 14, 0.96)',
+              background: isDay ? 'rgba(8, 20, 42, 0.96)' : 'rgba(6, 22, 14, 0.96)',
               backdropFilter: 'blur(28px) saturate(160%)',
               WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-              border: '1.5px solid rgba(0, 200, 83, 0.45)',
+              border: isDay ? '1.5px solid rgba(0, 102, 255, 0.45)' : '1.5px solid rgba(0, 200, 83, 0.45)',
               borderRadius: 16,
-              boxShadow: '0 16px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 200, 83, 0.25)',
+              boxShadow: isDay
+                ? '0 16px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 102, 255, 0.25)'
+                : '0 16px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 200, 83, 0.25)',
               padding: 6,
               minWidth: 210,
             }}
@@ -100,7 +104,7 @@ export default function ResumeButton() {
                 color: '#FFFFFF',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 200, 83, 0.16)';
+                (e.currentTarget as HTMLButtonElement).style.background = isDay ? 'rgba(0, 102, 255, 0.16)' : 'rgba(0, 200, 83, 0.16)';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
@@ -111,16 +115,16 @@ export default function ResumeButton() {
                   width: 32,
                   height: 32,
                   borderRadius: 8,
-                  background: 'rgba(0, 200, 83, 0.18)',
-                  border: '1px solid rgba(0, 255, 102, 0.3)',
+                  background: isDay ? 'rgba(0, 102, 255, 0.18)' : 'rgba(0, 200, 83, 0.18)',
+                  border: isDay ? '1px solid rgba(0, 102, 255, 0.4)' : '1px solid rgba(0, 255, 102, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  boxShadow: '0 0 10px rgba(0, 200, 83, 0.2)',
+                  boxShadow: isDay ? '0 0 10px rgba(0, 102, 255, 0.2)' : '0 0 10px rgba(0, 200, 83, 0.2)',
                 }}
               >
-                <Eye size={15} style={{ color: '#00FF66' }} />
+                <Eye size={15} style={{ color: isDay ? '#38BDF8' : '#00FF66' }} />
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div
@@ -131,7 +135,7 @@ export default function ResumeButton() {
                 </div>
                 <div
                   className="font-mono"
-                  style={{ fontSize: 9, color: '#8BAAA0', letterSpacing: '0.04em', marginTop: 1 }}
+                  style={{ fontSize: 9, color: isDay ? '#93C5FD' : '#8BAAA0', letterSpacing: '0.04em', marginTop: 1 }}
                 >
                   Browser preview
                 </div>
@@ -142,7 +146,7 @@ export default function ResumeButton() {
             <div
               style={{
                 height: 1,
-                background: 'rgba(0, 200, 83, 0.15)',
+                background: isDay ? 'rgba(0, 102, 255, 0.15)' : 'rgba(0, 200, 83, 0.15)',
                 margin: '3px 8px',
               }}
             />
@@ -165,7 +169,7 @@ export default function ResumeButton() {
                 color: '#FFFFFF',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0, 200, 83, 0.16)';
+                (e.currentTarget as HTMLButtonElement).style.background = isDay ? 'rgba(0, 102, 255, 0.16)' : 'rgba(0, 200, 83, 0.16)';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
@@ -176,16 +180,16 @@ export default function ResumeButton() {
                   width: 32,
                   height: 32,
                   borderRadius: 8,
-                  background: 'rgba(0, 200, 83, 0.18)',
-                  border: '1px solid rgba(0, 255, 102, 0.3)',
+                  background: isDay ? 'rgba(0, 102, 255, 0.18)' : 'rgba(0, 200, 83, 0.18)',
+                  border: isDay ? '1px solid rgba(0, 102, 255, 0.4)' : '1px solid rgba(0, 255, 102, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  boxShadow: '0 0 10px rgba(0, 200, 83, 0.2)',
+                  boxShadow: isDay ? '0 0 10px rgba(0, 102, 255, 0.2)' : '0 0 10px rgba(0, 200, 83, 0.2)',
                 }}
               >
-                <Download size={15} style={{ color: '#00FF66' }} />
+                <Download size={15} style={{ color: isDay ? '#38BDF8' : '#00FF66' }} />
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div
@@ -196,7 +200,7 @@ export default function ResumeButton() {
                 </div>
                 <div
                   className="font-mono"
-                  style={{ fontSize: 9, color: '#8BAAA0', letterSpacing: '0.04em', marginTop: 1 }}
+                  style={{ fontSize: 9, color: isDay ? '#93C5FD' : '#8BAAA0', letterSpacing: '0.04em', marginTop: 1 }}
                 >
                   Save PDF file
                 </div>
@@ -212,30 +216,35 @@ export default function ResumeButton() {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           aria-label="View or Download Resume"
-          className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4.5 h-9 sm:h-12 rounded-full cursor-pointer transition-all duration-300"
+          className="flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 h-9 sm:h-12 rounded-full cursor-pointer transition-all duration-300"
           style={{
             border: isOpen || isHovered
-              ? '1.5px solid #00FF66'
-              : '1.5px solid rgba(0, 230, 118, 0.6)',
+              ? isDay ? '2px solid #00E5FF' : '2px solid #00FF66'
+              : isDay ? '1.5px solid #0066FF' : '1.5px solid #00FF66',
             background: isOpen
-              ? 'linear-gradient(135deg, rgba(0, 200, 83, 0.95), rgba(0, 230, 118, 0.85))'
-              : 'rgba(6, 22, 14, 0.88)',
-            backdropFilter: 'blur(24px) saturate(160%)',
-            WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+              ? 'linear-gradient(135deg, #0d2752 0%, #153c7c 100%)'
+              : 'linear-gradient(135deg, #081a38 0%, #0c234a 100%)',
+            backdropFilter: 'blur(28px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(180%)',
             boxShadow: isOpen || isHovered
-              ? '0 8px 36px rgba(0, 200, 83, 0.45), 0 0 45px rgba(0, 255, 102, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
-              : '0 4px 20px rgba(0, 0, 0, 0.7), 0 0 22px rgba(0, 200, 83, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+              ? isDay
+                ? '0 0 24px rgba(0, 102, 255, 0.6), 0 16px 45px rgba(2, 8, 22, 0.9), inset 0 1.5px 2px rgba(255, 255, 255, 0.4)'
+                : '0 0 24px rgba(0, 255, 102, 0.6), 0 16px 45px rgba(2, 8, 22, 0.9), inset 0 1.5px 2px rgba(255, 255, 255, 0.4)'
+              : isDay
+                ? '0 0 15px rgba(0, 102, 255, 0.4), 0 10px 30px rgba(2, 8, 20, 0.8), inset 0 1px 1.5px rgba(255, 255, 255, 0.25)'
+                : '0 0 15px rgba(0, 255, 102, 0.35), 0 10px 30px rgba(2, 8, 20, 0.8), inset 0 1px 1.5px rgba(255, 255, 255, 0.25)',
             transform: isHovered && !isOpen ? 'translateY(-2px) scale(1.02)' : 'translateY(0) scale(1)',
             overflow: 'hidden',
             whiteSpace: 'nowrap',
           }}
         >
-          {/* Animated pulsing icon beacon */}
+          {/* Animated pulsing icon beacon with vibrant icon */}
           <div
             className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full flex-shrink-0"
             style={{
-              background: isOpen ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 200, 83, 0.22)',
-              border: isOpen ? 'none' : '1px solid rgba(0, 255, 102, 0.3)',
+              background: isDay ? 'rgba(0, 102, 255, 0.18)' : 'rgba(0, 255, 102, 0.15)',
+              border: isDay ? '1px solid rgba(0, 102, 255, 0.5)' : '1px solid rgba(0, 255, 102, 0.45)',
+              boxShadow: isDay ? '0 0 10px rgba(0, 102, 255, 0.3)' : '0 0 10px rgba(0, 255, 102, 0.25)',
             }}
           >
             {!isOpen && (
@@ -245,7 +254,7 @@ export default function ResumeButton() {
                   position: 'absolute',
                   inset: -2.5,
                   borderRadius: '50%',
-                  border: '1.5px solid rgba(0, 255, 102, 0.5)',
+                  border: isDay ? '1.5px solid rgba(0, 102, 255, 0.5)' : '1.5px solid rgba(0, 255, 102, 0.5)',
                   animation: 'resume-pulse 2.2s ease-in-out infinite',
                 }}
               />
@@ -253,20 +262,19 @@ export default function ResumeButton() {
             <FileText
               className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0"
               style={{
-                color: isOpen ? '#050c07' : '#00FF66',
-                transition: 'color 0.25s ease',
+                color: isDay ? '#38BDF8' : '#00FF66',
+                filter: isDay ? 'drop-shadow(0 0 4px #0066FF)' : 'drop-shadow(0 0 4px #00FF66)',
               }}
             />
           </div>
 
-          {/* Prominent Label */}
+          {/* Prominent Label - Pure White */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span
-              className="font-display tracking-wider text-xs sm:text-sm font-bold"
+              className="font-display tracking-wider text-xs sm:text-sm font-bold text-white"
               style={{
-                color: isOpen ? '#050c07' : '#FFFFFF',
                 letterSpacing: '0.06em',
-                textShadow: isOpen ? 'none' : '0 2px 8px rgba(0,0,0,0.8)',
+                textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 12px rgba(255,255,255,0.3)',
               }}
             >
               RESUME / CV
@@ -276,21 +284,21 @@ export default function ResumeButton() {
             <div
               className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full"
               style={{
-                background: isOpen ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 200, 83, 0.2)',
-                border: isOpen ? 'none' : '1px solid rgba(0, 255, 102, 0.4)',
+                background: isDay ? 'rgba(0, 102, 255, 0.18)' : 'rgba(0, 255, 102, 0.15)',
+                border: isDay ? '1px solid rgba(0, 102, 255, 0.5)' : '1px solid rgba(0, 255, 102, 0.45)',
               }}
             >
               <div
                 className="w-1.5 h-1.5 rounded-full"
                 style={{
-                  background: isOpen ? '#050c07' : '#00FF66',
-                  boxShadow: isOpen ? 'none' : '0 0 6px #00FF66',
+                  background: isDay ? '#0066FF' : '#00FF66',
+                  boxShadow: isDay ? '0 0 6px #0066FF' : '0 0 6px #00FF66',
                 }}
               />
               <span
                 className="font-mono text-[9px] sm:text-[10px] font-bold"
                 style={{
-                  color: isOpen ? '#050c07' : '#00FF66',
+                  color: isDay ? '#38BDF8' : '#00FF66',
                   letterSpacing: '0.05em',
                 }}
               >
@@ -303,7 +311,7 @@ export default function ResumeButton() {
           <ChevronDown
             className="w-3.5 h-3.5 sm:w-4 sm:h-4"
             style={{
-              color: isOpen ? '#050c07' : '#8BAAA0',
+              color: isDay ? '#38BDF8' : '#00FF66',
               transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
               transition: 'transform 0.3s ease, color 0.3s ease',
               marginLeft: -2,

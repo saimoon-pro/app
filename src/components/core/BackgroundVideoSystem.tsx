@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useStore } from '@/store/useStore';
 import { assetUrl } from '@/lib/assetUrl';
-import { SkipForward } from 'lucide-react';
+import { SkipForward, Volume2, VolumeX } from 'lucide-react';
 
 const REGULATOR_VIDEOS: Record<number, string> = {
   1: assetUrl('backgrounds/Regulator 1_opt.mp4'),
@@ -12,38 +12,24 @@ const REGULATOR_VIDEOS: Record<number, string> = {
   6: assetUrl('backgrounds/Regulator 6_opt.mp4'),
 };
 
-const INTRO_VIDEO = assetUrl('backgrounds/Intro_opt.mp4');
+const INTRO_VIDEO = assetUrl('backgrounds/Intro.mp4');
 const CONTACT_VIDEO = assetUrl('backgrounds/Contact Screen_opt.mp4');
-
-// ── Smooth Easy Ease Speed Ramp: 0-4s at 2x, 5-7s at 1x, 7-10s at 2x ──
-function getIntroSpeedRampRate(t: number): number {
-  const smoothstep = (min: number, max: number, v: number) => {
-    const x = Math.max(0, Math.min(1, (v - min) / (max - min)));
-    return x * x * (3 - 2 * x); // Standard cubic Hermite easy-ease
-  };
-
-  if (t < 3.8) {
-    return 2.0; // First 4s speed up 2x
-  } else if (t < 5.0) {
-    // 3.8s - 5.0s: smooth easy ease from 2.0x down to 1.0x
-    const progress = smoothstep(3.8, 5.0, t);
-    return 2.0 - 1.0 * progress;
-  } else if (t < 7.0) {
-    return 1.0; // 5-7s at 1x real-time speed
-  } else if (t < 8.2) {
-    // 7.0s - 8.2s: smooth easy ease from 1.0x up to 2.0x
-    const progress = smoothstep(7.0, 8.2, t);
-    return 1.0 + 1.0 * progress;
-  } else {
-    return 2.0; // 7-10s end 2x speed
-  }
-}
 
 export default function BackgroundVideoSystem() {
   const introCompleted = useStore((s) => s.introCompleted);
   const setIntroCompleted = useStore((s) => s.setIntroCompleted);
   const currentRegulator = useStore((s) => s.currentRegulator);
   const activeNode = useStore((s) => s.activeNode);
+  const timeOfDay = useStore((s) => s.timeOfDay);
+
+  const dayFactor = (() => {
+    if (timeOfDay >= 5.5 && timeOfDay < 7.0) return (timeOfDay - 5.5) / 1.5;
+    if (timeOfDay >= 7.0 && timeOfDay < 11.0) return 0.5 + ((timeOfDay - 7.0) / 4.0) * 0.5;
+    if (timeOfDay >= 11.0 && timeOfDay < 14.5) return 1.0;
+    if (timeOfDay >= 14.5 && timeOfDay < 17.5) return 1.0 - ((timeOfDay - 14.5) / 3.0) * 0.5;
+    if (timeOfDay >= 17.5 && timeOfDay < 19.5) return 0.5 * (1.0 - (timeOfDay - 17.5) / 2.0);
+    return 0.0;
+  })();
 
   // Intro video states: 'welcome' | 'dissolving' | 'completed'
   const [introState, setIntroState] = useState<'welcome' | 'dissolving' | 'completed'>(
@@ -51,6 +37,10 @@ export default function BackgroundVideoSystem() {
   );
 
   const welcomeVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Intro video audio states
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [userInteracted, setUserInteracted] = useState(false);
 
   // Dual-Layer Constant-Luminance Dissolve System
   const [activeLayer, setActiveLayer] = useState<'A' | 'B'>('A');
@@ -87,6 +77,80 @@ export default function BackgroundVideoSystem() {
     ? CONTACT_VIDEO
     : REGULATOR_VIDEOS[currentRegulator] || REGULATOR_VIDEOS[1];
 
+  // Auto-play intro video with audio, handling browser autoplay policies gracefully
+  useEffect(() => {
+    if (introState !== 'welcome') return;
+    const vid = welcomeVideoRef.current;
+    if (!vid) return;
+
+    vid.volume = 1.0;
+    vid.muted = false;
+
+    const playPromise = vid.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsAudioMuted(false);
+        })
+        .catch((err) => {
+          // Autoplay policy prevented unmuted audio playback without user gesture
+          console.warn('Browser autoplay prevented audio. Playing muted until interaction:', err);
+          vid.muted = true;
+          vid.play().catch(() => {});
+          setIsAudioMuted(true);
+        });
+    }
+
+    // Touch/click/key anywhere immediately enables full audio
+    const unlockSound = () => {
+      const v = welcomeVideoRef.current;
+      if (v && introState === 'welcome') {
+        v.muted = false;
+        v.volume = 1.0;
+        v.play().catch(() => {});
+        setIsAudioMuted(false);
+        setUserInteracted(true);
+      }
+    };
+
+    window.addEventListener('pointerdown', unlockSound, { once: true });
+    window.addEventListener('keydown', unlockSound, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', unlockSound);
+      window.removeEventListener('keydown', unlockSound);
+    };
+  }, [introState]);
+
+  const toggleIntroSound = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const vid = welcomeVideoRef.current;
+    if (!vid) return;
+
+    if (vid.muted || isAudioMuted) {
+      vid.muted = false;
+      vid.volume = 1.0;
+      vid.play().catch(() => {});
+      setIsAudioMuted(false);
+      setUserInteracted(true);
+    } else {
+      vid.muted = true;
+      setIsAudioMuted(true);
+    }
+  }, [isAudioMuted]);
+
+  const handleIntroOverlayClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    const vid = welcomeVideoRef.current;
+    if (vid && (vid.muted || isAudioMuted)) {
+      vid.muted = false;
+      vid.volume = 1.0;
+      vid.play().catch(() => {});
+      setIsAudioMuted(false);
+      setUserInteracted(true);
+    }
+  };
+
   // Seamless 1080p Dissolve from Intro to Regulator 1
   const triggerIntroDissolve = useCallback(() => {
     setIntroState((prev) => {
@@ -95,6 +159,26 @@ export default function BackgroundVideoSystem() {
       if (videoARef.current) {
         videoARef.current.play().catch(() => {});
       }
+
+      // Smooth audio fadeout over 800ms
+      if (welcomeVideoRef.current) {
+        const vid = welcomeVideoRef.current;
+        const initialVol = vid.volume;
+        const fadeStart = performance.now();
+        const fadeDuration = 800;
+        const fadeStep = () => {
+          const elapsed = performance.now() - fadeStart;
+          const p = Math.min(elapsed / fadeDuration, 1);
+          vid.volume = Math.max(0, initialVol * (1 - p));
+          if (p < 1) {
+            requestAnimationFrame(fadeStep);
+          } else {
+            vid.pause();
+          }
+        };
+        requestAnimationFrame(fadeStep);
+      }
+
       setTimeout(() => {
         setIntroState('completed');
         setIntroCompleted(true);
@@ -103,23 +187,22 @@ export default function BackgroundVideoSystem() {
     });
   }, [setIntroCompleted]);
 
-  // Safety fallback timer on Welcome Video
+  // Safety fallback timer on Welcome Video (5.56s duration)
   useEffect(() => {
     if (introState !== 'welcome') return;
     const timer = setTimeout(() => {
       triggerIntroDissolve();
-    }, 11000);
+    }, 6200);
     return () => clearTimeout(timer);
   }, [introState, triggerIntroDissolve]);
 
   const handleWelcomeTimeUpdate = () => {
     if (welcomeVideoRef.current && introState === 'welcome') {
       const t = welcomeVideoRef.current.currentTime;
-      const targetRate = getIntroSpeedRampRate(t);
-      if (Math.abs(welcomeVideoRef.current.playbackRate - targetRate) > 0.01) {
-        welcomeVideoRef.current.playbackRate = targetRate;
+      if (welcomeVideoRef.current.playbackRate !== 1.0) {
+        welcomeVideoRef.current.playbackRate = 1.0;
       }
-      if (t >= 9.8) {
+      if (t >= 5.3) {
         triggerIntroDissolve();
       }
     }
@@ -178,12 +261,10 @@ export default function BackgroundVideoSystem() {
       if (introState === 'welcome') {
         const welcomeVid = welcomeVideoRef.current;
         if (welcomeVid && welcomeVid.readyState >= 2) {
-          const t = welcomeVid.currentTime;
-          const targetRate = getIntroSpeedRampRate(t);
-          if (Math.abs(welcomeVid.playbackRate - targetRate) > 0.01) {
-            welcomeVid.playbackRate = targetRate;
+          if (welcomeVid.playbackRate !== 1.0) {
+            welcomeVid.playbackRate = 1.0;
           }
-          if (t >= 9.8) {
+          if (welcomeVid.currentTime >= 5.3) {
             triggerIntroDissolve();
           }
         }
@@ -364,22 +445,22 @@ export default function BackgroundVideoSystem() {
       {/* ── INTRO WELCOMING SEQUENCE WITH 1080P SEAMLESS DISSOLVE ── */}
       {introState !== 'completed' && (
         <div
+          onClick={handleIntroOverlayClick}
           className={`absolute inset-0 z-50 bg-black flex items-center justify-center transition-opacity duration-1000 ease-in-out ${
-            introState === 'welcome' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            introState === 'welcome' ? 'opacity-100 pointer-events-auto cursor-pointer' : 'opacity-0 pointer-events-none'
           }`}
         >
-          {/* Welcoming Video with Easy Ease Speed Ramp */}
+          {/* Welcoming Video with High-Fidelity Audio */}
           <video
             ref={welcomeVideoRef}
             src={INTRO_VIDEO}
             autoPlay
-            muted
             playsInline
+            preload="auto"
             onEnded={triggerIntroDissolve}
             onTimeUpdate={handleWelcomeTimeUpdate}
             className="absolute inset-0 w-full h-full object-cover"
           />
-
 
           {/* ── CINEMATIC BLACK VIGNETTE ON INTRO SCREEN (Matching Background Videos) ── */}
           <div
@@ -401,14 +482,53 @@ export default function BackgroundVideoSystem() {
             }}
           />
 
-          {/* Skip Intro Button */}
-          <button
-            onClick={handleSkipIntro}
-            className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 hover:bg-[#00C853]/90 text-white hover:text-black font-mono text-xs uppercase tracking-wider backdrop-blur-md border border-white/20 hover:border-[#00C853] transition-all duration-300 group shadow-lg cursor-pointer"
-          >
-            <span>Skip Intro</span>
-            <SkipForward size={14} className="group-hover:translate-x-0.5 transition-transform" />
-          </button>
+          {/* Top Control Bar: Sound Toggle + Skip Intro Button */}
+          <div className="absolute top-6 right-6 z-50 flex items-center gap-3">
+            {/* Audio Toggle Button */}
+            <button
+              onClick={toggleIntroSound}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-xs uppercase tracking-wider backdrop-blur-md border transition-all duration-300 cursor-pointer shadow-lg group ${
+                isAudioMuted
+                  ? 'bg-amber-500/25 hover:bg-amber-500/40 text-amber-300 border-amber-500/50 animate-pulse'
+                  : 'bg-black/60 hover:bg-[#00C853]/90 text-[#00C853] hover:text-black border-[#00C853]/40 hover:border-[#00C853]'
+              }`}
+              title={isAudioMuted ? 'Sound muted by browser - click to enable audio' : 'Sound playing'}
+            >
+              {isAudioMuted ? (
+                <>
+                  <VolumeX size={14} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                  <span>Sound Muted (Click)</span>
+                </>
+              ) : (
+                <>
+                  <Volume2 size={14} className="text-[#00C853] group-hover:scale-110 transition-transform" />
+                  <span>Sound ON</span>
+                </>
+              )}
+            </button>
+
+            {/* Skip Intro Button */}
+            <button
+              onClick={handleSkipIntro}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 hover:bg-[#00C853]/90 text-white hover:text-black font-mono text-xs uppercase tracking-wider backdrop-blur-md border border-white/20 hover:border-[#00C853] transition-all duration-300 group shadow-lg cursor-pointer"
+            >
+              <span>Skip Intro</span>
+              <SkipForward size={14} className="group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+
+          {/* Audio Tap-to-Unmute Banner (if browser blocked initial audio) */}
+          {isAudioMuted && !userInteracted && (
+            <div
+              onClick={toggleIntroSound}
+              className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-amber-500/25 backdrop-blur-md border border-amber-500/50 z-50 shadow-2xl cursor-pointer hover:bg-amber-500/40 transition-all duration-200 animate-bounce"
+            >
+              <VolumeX size={16} className="text-amber-300" />
+              <span className="font-mono text-xs text-amber-200 tracking-wider uppercase font-semibold">
+                Tap anywhere to enable sound
+              </span>
+            </div>
+          )}
 
           {/* Welcoming Subtitle Banner */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-2.5 rounded-full bg-black/60 backdrop-blur-md border border-emerald-500/30 z-50 shadow-xl">
@@ -461,22 +581,36 @@ export default function BackgroundVideoSystem() {
         }}
       />
 
-      {/* Cinematic Vignette & Ambient Darkness Overlay */}
+      {/* ── DYNAMIC WHITE VIGNETTE (DAY MODE) ── */}
       <div
-        className="absolute inset-0 pointer-events-none z-10"
+        className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-700 ease-out"
         style={{
           background:
-            'radial-gradient(ellipse at center, rgba(10, 26, 15, 0.4) 0%, rgba(5, 15, 8, 0.8) 100%)',
+            'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.38) 50%, rgba(240, 246, 255, 0.88) 100%)',
           backdropFilter: 'blur(0.5px)',
+          opacity: Math.max(0, Math.min(1, dayFactor)),
+        }}
+      />
+
+      {/* ── DYNAMIC DARK CYBER VIGNETTE (NIGHT MODE) ── */}
+      <div
+        className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-700 ease-out"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, rgba(10, 26, 15, 0.4) 0%, rgba(5, 15, 8, 0.85) 100%)',
+          backdropFilter: 'blur(0.5px)',
+          opacity: Math.max(0, Math.min(1, 1 - dayFactor)),
         }}
       />
 
       {/* Subtle Scanline / Cyber Grid Overlay */}
       <div
-        className="absolute inset-0 pointer-events-none z-10 opacity-[0.03]"
+        className="absolute inset-0 pointer-events-none z-10 opacity-[0.035]"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(0, 200, 83, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 200, 83, 0.2) 1px, transparent 1px)',
+            dayFactor > 0.5
+              ? 'linear-gradient(rgba(0, 102, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 102, 255, 0.2) 1px, transparent 1px)'
+              : 'linear-gradient(rgba(0, 200, 83, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 200, 83, 0.2) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
         }}
       />

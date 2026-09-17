@@ -312,3 +312,233 @@
 .resume-cta-container {
   z-index: 45;
 }
+
+/* ─── Apple-Style Liquid Morph Glass ─── */
+.liquid-morph-glass {
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.25),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* ─── 3D Depth White Border & Realistic Extruded Shadow for Headline ─── */
+.headline-3d-bevel {
+  color: #00C853;
+  -webkit-text-stroke: 1.1px rgba(255, 255, 255, 0.92);
+  text-shadow:
+    0 1px 0 #ffffff,
+    0 2px 0 rgba(255, 255, 255, 0.8),
+    0 3px 0 rgba(0, 180, 70, 0.7),
+    0 4px 1px rgba(0, 100, 40, 0.6),
+    var(--sun-shadow-x, 0px) var(--sun-shadow-y, 8px) 24px rgba(0, 0, 0, 0.85),
+    0 12px 35px rgba(0, 0, 0, 0.75);
+}
+
+/* ─── 3D Glossy Bevel Depth for Tagline (Creative Editor) ─── */
+.tagline-glossy-bevel {
+  background: linear-gradient(180deg, #55FF88 0%, #00E676 50%, #00963D 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6))
+          drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6))
+          drop-shadow(0 0 5px rgba(0, 255, 102, 0.45));
+}
+
+/* ─── 3D Solid Green Tactile WhatsApp Button ─── */
+.whatsapp-tactile-btn {
+  background: #00C853;
+  color: #000000;
+  border: 2.5px solid #FFFFFF;
+  box-shadow:
+    0 5px 0 #008436,
+    0 7px 1px rgba(0, 0, 0, 0.4),
+    var(--sun-shadow-x, 0px) var(--sun-shadow-y, 10px) 22px rgba(0, 200, 83, 0.45),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.75);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.whatsapp-tactile-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 7px 0 #008436,
+    0 9px 2px rgba(0, 0, 0, 0.4),
+    var(--sun-shadow-x, 0px) var(--sun-shadow-y, 14px) 30px rgba(0, 200, 83, 0.6),
+    inset 0 2px 3px rgba(255, 255, 255, 0.9);
+}
+
+.whatsapp-tactile-btn:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 2px 0 #008436,
+    0 3px 1px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── 3D White Tactile Resume Button with Depth of Field ─── */
+.resume-tactile-white-btn {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F0F4F2 100%);
+  color: #0d1a12;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 10px 25px -4px rgba(0, 0, 0, 0.25),
+    0 20px 40px -8px rgba(0, 0, 0, 0.2),
+    var(--sun-shadow-x, 0px) var(--sun-shadow-y, 8px) 18px rgba(0, 0, 0, 0.18),
+    inset 0 1.5px 1px #FFFFFF,
+    inset 0 -1px 2px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.resume-tactile-white-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 14px 30px -4px rgba(0, 0, 0, 0.3),
+    0 25px 50px -6px rgba(0, 0, 0, 0.25),
+    var(--sun-shadow-x, 0px) var(--sun-shadow-y, 12px) 24px rgba(0, 0, 0, 0.22),
+    inset 0 2px 2px #FFFFFF;
+}
+
+.resume-tactile-white-btn:active {
+  transform: translateY(2px) scale(0.99);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* ─── 3D Blue Headline Bevel (Day Mode) ─── */
+.headline-3d-bevel-blue {
+  color: #0066FF;
+  -webkit-text-stroke: 1.1px rgba(255, 255, 255, 0.92);
+  text-shadow:
+    0 1px 0 #ffffff,
+    0 2px 0 rgba(255, 255, 255, 0.8),
+    0 3px 0 rgba(0, 102, 255, 0.7),
+    0 4px 1px rgba(0, 60, 180, 0.6),
+    var(--sun-shadow-x, 0px) var(--sun-shadow-y, 8px) 24px rgba(0, 0, 0, 0.4),
+    0 12px 35px rgba(0, 50, 150, 0.3);
+}
+
+/* ─── 3D Glossy Blue Bevel for Tagline (Day Mode) ─── */
+.tagline-glossy-bevel-blue {
+  background: linear-gradient(180deg, #60A5FA 0%, #2563EB 50%, #1D4ED8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6))
+          drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35))
+          drop-shadow(0 0 6px rgba(37, 99, 235, 0.5));
+}
+
+/* ─── 3D Solid Blue Tactile WhatsApp Button (Day Mode) ─── */
+.whatsapp-tactile-btn-blue {
+  background: #0066FF;
+  color: #FFFFFF;
+  border: 2.5px solid #FFFFFF;
+  box-shadow:
+    0 5px 0 #0048B3,
+    0 7px 1px rgba(0, 0, 0, 0.3),
+    var(--sun-shadow-x, 0px) var(--sun-shadow-y, 10px) 22px rgba(0, 102, 255, 0.45),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.75);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.whatsapp-tactile-btn-blue:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 7px 0 #0048B3,
+    0 9px 2px rgba(0, 0, 0, 0.3),
+    var(--sun-shadow-x, 0px) var(--sun-shadow-y, 14px) 30px rgba(0, 102, 255, 0.6),
+    inset 0 2px 3px rgba(255, 255, 255, 0.9);
+}
+
+.whatsapp-tactile-btn-blue:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 2px 0 #0048B3,
+    0 3px 1px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Real Life Optical Sun Flare & Solar Scintillation Effects ─── */
+@keyframes solar-optical-flare {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 35px rgba(255, 215, 120, 0.75)) brightness(1);
+    opacity: 0.92;
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1.045) rotate(1.4deg);
+    filter: drop-shadow(0 0 45px rgba(255, 225, 140, 0.85)) brightness(1.06);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(0.985) rotate(-0.9deg);
+    filter: drop-shadow(0 0 32px rgba(255, 205, 110, 0.7)) brightness(0.97);
+    opacity: 0.9;
+  }
+  75% {
+    transform: translate(-50%, -50%) scale(1.06) rotate(2.2deg);
+    filter: drop-shadow(0 0 50px rgba(255, 235, 160, 0.9)) brightness(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 35px rgba(255, 215, 120, 0.75)) brightness(1);
+    opacity: 0.92;
+  }
+}
+
+@keyframes solar-corona-shimmer {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(45deg);
+    opacity: 0.65;
+  }
+  33% {
+    transform: translate(-50%, -50%) scale(1.07) rotate(48deg);
+    opacity: 0.85;
+  }
+  66% {
+    transform: translate(-50%, -50%) scale(0.96) rotate(43deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(45deg);
+    opacity: 0.65;
+  }
+}
+
+@keyframes solar-anamorphic-streak {
+  0%, 100% {
+    transform: translate(-50%, -50%) scaleX(1) scaleY(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(-50%, -50%) scaleX(1.08) scaleY(1.25);
+    opacity: 1;
+  }
+}
+
+/* ─── Realistic Lunar Atmosphere & Moonlight Glow Keyframes ─── */
+@keyframes lunar-ambient-pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.82;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.98;
+  }
+}
+
+@keyframes lunar-subtle-drift {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+

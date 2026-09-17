@@ -13,6 +13,8 @@ import ResumeButton from '@/components/core/ResumeButton';
 import BackgroundVideoSystem from '@/components/core/BackgroundVideoSystem';
 import GearRegulator from '@/components/core/GearRegulator';
 import LeadCaptureModal from '@/components/core/LeadCaptureModal';
+import CelestialLightingEngine from '@/components/core/CelestialLightingEngine';
+import CelestialSlider from '@/components/core/CelestialSlider';
 import gsap from 'gsap';
 
 const ROLES = [
@@ -69,6 +71,8 @@ export default function App() {
   const setCursorHover = useStore((s) => s.setCursorHover);
   const reducedMotion = useStore((s) => s.reducedMotion);
   const setResumeModalOpen = useStore((s) => s.setResumeModalOpen);
+  const timeOfDay = useStore((s) => s.timeOfDay);
+  const isDay = timeOfDay >= 7.5 && timeOfDay <= 17.5;
   const { playClick, playPanelOpen } = useSound();
   useReducedMotion();
 
@@ -243,11 +247,19 @@ export default function App() {
       {/* ── CINEMATIC DYNAMIC VIDEO BACKGROUND SYSTEM ── */}
       <BackgroundVideoSystem />
 
+      {/* ── CELESTIAL REAL-TIME 24H LIGHTING ENGINE & VIRTUAL SUN ── */}
+      <CelestialLightingEngine />
+
+      {/* ── CELESTIAL CLOCK SCRUBBER SLIDER CONTROLLER (TOP CENTER) ── */}
+      <CelestialSlider />
+
       {/* Ambient Radial Accent */}
       <div
         className="bg-gradient-wash absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 40% 50%, rgba(0, 200, 83, 0.08) 0%, transparent 60%)',
+          background: isDay
+            ? 'radial-gradient(circle at 40% 50%, rgba(0, 102, 255, 0.08) 0%, transparent 60%)'
+            : 'radial-gradient(circle at 40% 50%, rgba(0, 200, 83, 0.08) 0%, transparent 60%)',
           opacity: 0,
         }}
       />
@@ -255,10 +267,10 @@ export default function App() {
       <ParticleField />
 
       {/* ── MOBILE FROSTED GLASS HEADER (Audio Toggle & Top Nav Space) ── */}
-      <header className="fixed top-0 left-0 right-0 h-14 z-40 flex items-center justify-between px-3.5 sm:px-5 lg:hidden bg-[#050c07]/95 backdrop-blur-xl border-b border-[#00C853]/20 shadow-[0_4px_24px_rgba(0,0,0,0.7)] select-none">
+      <header className={`fixed top-0 left-0 right-0 h-14 z-40 flex items-center justify-between px-3.5 sm:px-5 lg:hidden ${isDay ? 'bg-white/85 border-b border-[#0066FF]/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)]' : 'bg-[#050c07]/95 border-b border-[#00C853]/20 shadow-[0_4px_24px_rgba(0,0,0,0.7)]'} backdrop-blur-xl select-none`}>
         <button
           onClick={toggleSound}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-[#00C853]/30 text-xs font-mono text-[#00FF66] hover:bg-[#00C853]/15 transition-all cursor-pointer"
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${isDay ? 'bg-blue-500/10 border border-[#0066FF]/30 text-[#0066FF]' : 'bg-white/5 border border-[#00C853]/30 text-[#00FF66]'} text-xs font-mono transition-all cursor-pointer`}
           aria-label={soundEnabled ? 'Mute sound' : 'Enable sound'}
         >
           {soundEnabled ? <Volume2 size={13} /> : <VolumeX size={13} />}
@@ -275,8 +287,8 @@ export default function App() {
         {/* Hero Section: Name · Designation · Role · Tagline · CTAs */}
         <div className="flex flex-col items-center gap-1.5 px-4 sm:px-6 text-center" style={{ flexShrink: 0 }}>
           <h1
-            className="font-display font-bold tracking-tight text-white"
-            style={{ lineHeight: 1.08, textShadow: '0 4px 20px rgba(0,0,0,0.9)' }}
+            className={`font-display font-bold tracking-tight ${isDay ? 'headline-3d-bevel-blue' : 'headline-3d-bevel'}`}
+            style={{ lineHeight: 1.08 }}
           >
             <span className="block" style={{ fontSize: 'clamp(28px, 7.5vw, 46px)' }}>
               {'Muhammad'.split('').map((char, i) => (
@@ -293,28 +305,28 @@ export default function App() {
           </h1>
 
           {/* Designation */}
-          <div className="designation flex items-center gap-2 mt-0.5" style={{ opacity: 0 }}>
-            <div style={{ width: 20, height: 1.5, background: '#00C853', boxShadow: '0 0 6px #00C853' }} />
-            <span className="font-display font-semibold uppercase tracking-widest text-[#00FF66]" style={{ fontSize: 11 }}>
+          <div className="designation flex items-center gap-2 mt-1" style={{ opacity: 0 }}>
+            <div style={{ width: 22, height: 2, background: isDay ? '#0066FF' : '#00C853', boxShadow: isDay ? '0 0 6px #0066FF' : '0 0 6px #00C853' }} />
+            <span className={`font-display font-extrabold uppercase tracking-widest text-sm sm:text-base ${isDay ? 'tagline-glossy-bevel-blue' : 'tagline-glossy-bevel'}`}>
               Creative Editor
             </span>
-            <div style={{ width: 20, height: 1.5, background: '#00C853', boxShadow: '0 0 6px #00C853' }} />
+            <div style={{ width: 22, height: 2, background: isDay ? '#0066FF' : '#00C853', boxShadow: isDay ? '0 0 6px #0066FF' : '0 0 6px #00C853' }} />
           </div>
 
-          {/* Role Ticker */}
-          <div className="role-ticker flex items-center gap-2 mt-0.5" style={{ opacity: 0 }}>
+          {/* Role Ticker with Liquid Morph Glass */}
+          <div className="role-ticker flex items-center gap-2 mt-1" style={{ opacity: 0 }}>
             <span
-              className="font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-[#00C853]/40 shadow-[0_0_10px_rgba(0,200,83,0.2)]"
-              style={{ background: 'rgba(0, 200, 83, 0.12)', color: '#00FF66', fontSize: 10 }}
+              className="font-mono font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full liquid-morph-glass"
+              style={{ color: isDay ? '#0066FF' : '#00FF66', fontSize: 11 }}
             >
               {ROLES[roleIndex]}
             </span>
             <div className="flex gap-1">
               {ROLES.map((_, i) => (
                 <div key={i} className="rounded-full transition-all duration-300" style={{
-                  width: i === roleIndex ? 12 : 3, height: 3,
-                  background: i === roleIndex ? '#00C853' : 'rgba(0, 200, 83, 0.3)',
-                  boxShadow: i === roleIndex ? '0 0 6px #00C853' : 'none',
+                  width: i === roleIndex ? 14 : 3.5, height: 3.5,
+                  background: i === roleIndex ? (isDay ? '#0066FF' : '#00FF66') : (isDay ? 'rgba(0, 102, 255, 0.3)' : 'rgba(0, 200, 83, 0.3)'),
+                  boxShadow: i === roleIndex ? (isDay ? '0 0 6px #0066FF' : '0 0 6px #00FF66') : 'none',
                 }} />
               ))}
             </div>
@@ -322,15 +334,16 @@ export default function App() {
 
           {/* Tagline */}
           <p
-            className="tagline text-center text-[#B0C8BF] mt-1"
+            className="tagline text-center mt-1 font-medium transition-colors duration-500"
             style={{
-              fontSize: 12,
+              fontSize: 12.5,
               maxWidth: 340,
               paddingLeft: 8,
               paddingRight: 8,
-              lineHeight: 1.55,
+              lineHeight: 1.6,
               opacity: 0,
-              textShadow: '0 2px 8px rgba(0,0,0,0.9)',
+              color: isDay ? '#000000' : '#FFFFFF',
+              textShadow: isDay ? '0 1px 1px rgba(255,255,255,0.9)' : '0 2px 8px rgba(0,0,0,0.95)',
             }}
           >
             Where creativity meets technology. I craft visual experiences
@@ -343,18 +356,18 @@ export default function App() {
               href="https://wa.me/8801778011899"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#00C853]/20 hover:bg-[#00C853] text-[#00FF66] hover:text-black border border-[#00C853]/50 font-mono text-xs uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(0,200,83,0.2)] cursor-pointer"
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl ${isDay ? 'whatsapp-tactile-btn-blue' : 'whatsapp-tactile-btn'} font-mono text-xs uppercase tracking-wider font-extrabold cursor-pointer select-none`}
             >
-              <MessageCircle size={14} />
-              <span>Direct WhatsApp</span>
+              <MessageCircle size={15} strokeWidth={2.5} className="text-white" />
+              <span>WHATSAPP</span>
             </a>
 
             <button
               onClick={() => setResumeModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-[#00C853] text-white hover:text-black border border-white/20 font-mono text-xs uppercase tracking-wider transition-all shadow-[0_2px_10px_rgba(0,0,0,0.4)] cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl resume-tactile-white-btn font-mono text-xs uppercase tracking-wider font-bold cursor-pointer select-none"
             >
-              <FileText size={14} className="text-[#00FF66]" />
-              <span>View Resume</span>
+              <FileText size={15} strokeWidth={2.2} className={isDay ? "text-[#0066FF]" : "text-[#00C853]"} />
+              <span>VIEW RESUME</span>
             </button>
           </div>
 
@@ -364,11 +377,12 @@ export default function App() {
               const el = document.querySelector('.mobile-layout-scroll');
               if (el) el.scrollBy({ top: 320, behavior: 'smooth' });
             }}
-            className="flex items-center gap-1.5 mt-2.5 text-[#00FF66]/80 hover:text-[#00FF66] bg-black/40 px-3 py-1 rounded-full border border-[#00C853]/25 transition-all cursor-pointer select-none"
+            className="flex items-center gap-1.5 mt-2.5 bg-black/40 px-3 py-1 rounded-full border border-white/20 transition-all cursor-pointer select-none"
+            style={{ color: isDay ? '#0066FF' : '#00FF66' }}
             aria-label="Scroll to explore services"
           >
             <span className="font-mono text-[9px] uppercase tracking-[0.2em]">Explore Services</span>
-            <ChevronDown size={13} className="animate-bounce text-[#00C853]" />
+            <ChevronDown size={13} className="animate-bounce" style={{ color: isDay ? '#0066FF' : '#00C853' }} />
           </button>
         </div>
 
@@ -377,10 +391,18 @@ export default function App() {
 
         {/* "Services" headline */}
         <div className="services-headline flex flex-col items-center gap-0.5" style={{ flexShrink: 0, opacity: 0 }}>
-          <span className="font-mono uppercase tracking-[0.22em] text-[#00C853]" style={{ fontSize: 9 }}>
+          <span className="font-mono uppercase tracking-[0.22em] font-bold" style={{ fontSize: 9, color: isDay ? '#0066FF' : '#00C853' }}>
             — explore my universe —
           </span>
-          <h2 className="font-display font-bold tracking-tight text-white" style={{ fontSize: 'clamp(26px, 6.5vw, 38px)', lineHeight: 1, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+          <h2
+            className="font-display font-bold tracking-tight transition-colors duration-500"
+            style={{
+              fontSize: 'clamp(26px, 6.5vw, 38px)',
+              lineHeight: 1,
+              color: isDay ? '#0A2540' : '#FFFFFF',
+              textShadow: isDay ? '0 1px 2px rgba(0, 102, 255, 0.2)' : '0 2px 10px rgba(0,0,0,0.8)',
+            }}
+          >
             Services & Disciplines
           </h2>
         </div>
@@ -401,8 +423,8 @@ export default function App() {
         <div className="col-span-6 flex flex-col gap-5 justify-center pr-6 max-w-xl">
           {/* Name - 2 lines */}
           <h1
-            className="font-display font-bold tracking-tight text-white"
-            style={{ fontSize: 'clamp(46px, 4.4vw, 64px)', lineHeight: 1.04, textShadow: '0 4px 28px rgba(0,0,0,0.95)' }}
+            className={`font-display font-bold tracking-tight ${isDay ? 'headline-3d-bevel-blue' : 'headline-3d-bevel'}`}
+            style={{ fontSize: 'clamp(46px, 4.4vw, 64px)', lineHeight: 1.04 }}
           >
             <span className="block">
               {'Muhammad'.split('').map((char, i) => (
@@ -420,17 +442,20 @@ export default function App() {
 
           {/* Designation */}
           <div className="designation flex items-center gap-3" style={{ opacity: 0 }}>
-            <div style={{ width: 36, height: 2, background: '#00C853', boxShadow: '0 0 10px #00C853' }} />
-            <span className="font-display text-base font-bold uppercase tracking-[0.2em] text-[#00FF66]" style={{ textShadow: '0 0 12px rgba(0,200,83,0.7)' }}>
+            <div style={{ width: 36, height: 2.5, background: isDay ? '#0066FF' : '#00C853', boxShadow: isDay ? '0 0 8px #0066FF' : '0 0 8px #00C853' }} />
+            <span
+              className={`font-display text-xl sm:text-2xl font-extrabold uppercase tracking-[0.2em] ${isDay ? 'tagline-glossy-bevel-blue' : 'tagline-glossy-bevel'}`}
+            >
               Creative Editor
             </span>
+            <div style={{ width: 36, height: 2.5, background: isDay ? '#0066FF' : '#00C853', boxShadow: isDay ? '0 0 8px #0066FF' : '0 0 8px #00C853' }} />
           </div>
 
           {/* Role Ticker */}
           <div className="role-ticker flex items-center gap-3" style={{ opacity: 0 }}>
             <span
-              className="font-mono text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-[#00C853]/40 shadow-[0_0_15px_rgba(0,200,83,0.25)]"
-              style={{ background: 'rgba(0, 200, 83, 0.15)', color: '#00FF66' }}
+              className="font-mono text-xs sm:text-sm font-extrabold uppercase tracking-widest px-4 py-1.5 rounded-full liquid-morph-glass"
+              style={{ color: isDay ? '#0066FF' : '#00FF66' }}
             >
               {ROLES[roleIndex]}
             </span>
@@ -438,8 +463,8 @@ export default function App() {
               {ROLES.map((_, i) => (
                 <div key={i} className="rounded-full transition-all duration-300" style={{
                   width: i === roleIndex ? 18 : 4, height: 4,
-                  background: i === roleIndex ? '#00C853' : 'rgba(0, 200, 83, 0.3)',
-                  boxShadow: i === roleIndex ? '0 0 8px #00C853' : 'none',
+                  background: i === roleIndex ? (isDay ? '#0066FF' : '#00FF66') : (isDay ? 'rgba(0, 102, 255, 0.3)' : 'rgba(0, 200, 83, 0.3)'),
+                  boxShadow: i === roleIndex ? (isDay ? '0 0 8px #0066FF' : '0 0 8px #00FF66') : 'none',
                 }} />
               ))}
             </div>
@@ -447,8 +472,12 @@ export default function App() {
 
           {/* Tagline */}
           <p
-            className="tagline text-sm text-[#C2D8CE] leading-relaxed max-w-md"
-            style={{ opacity: 0, textShadow: '0 2px 10px rgba(0,0,0,0.95)' }}
+            className="tagline text-sm leading-relaxed max-w-md font-medium transition-colors duration-500"
+            style={{
+              opacity: 0,
+              color: isDay ? '#000000' : '#FFFFFF',
+              textShadow: isDay ? '0 1px 1px rgba(255,255,255,0.9)' : '0 2px 10px rgba(0,0,0,0.95)',
+            }}
           >
             Where creativity meets technology. I craft visual experiences
             that move people — from pixels to motion to intelligent systems.
@@ -457,34 +486,53 @@ export default function App() {
           {/* Services Section Header in Left Hero Column */}
           <div className="services-headline flex flex-col gap-1 pt-1" style={{ opacity: 0 }}>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#00A84D] shadow-[0_0_8px_#00C853] animate-pulse" />
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-[#00A84D]">
+              <div
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{
+                  background: isDay ? '#0066FF' : '#00A84D',
+                  boxShadow: isDay ? '0 0 8px #0066FF' : '0 0 8px #00C853',
+                }}
+              />
+              <span
+                className="font-mono text-[10px] font-bold uppercase tracking-[0.25em]"
+                style={{ color: isDay ? '#0066FF' : '#00A84D' }}
+              >
                 — EXPLORE MY UNIVERSE —
               </span>
             </div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.9)' }}>
+            <h2
+              className="font-display text-2xl font-bold tracking-tight transition-colors duration-500"
+              style={{
+                color: isDay ? '#0A2540' : '#FFFFFF',
+                textShadow: isDay ? '0 1px 3px rgba(0, 102, 255, 0.2)' : '0 2px 10px rgba(0,0,0,0.9)',
+              }}
+            >
               Services & Disciplines
             </h2>
           </div>
 
           {/* Quick Direct Action CTA */}
-          <div className="flex items-center gap-3 pt-1">
+          <div className="flex items-center gap-4 pt-1">
             <a
               href="https://wa.me/8801778011899"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00C853]/20 hover:bg-[#00C853] text-[#00FF66] hover:text-black border border-[#00C853]/50 font-mono text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(0,200,83,0.2)] hover:shadow-[0_0_25px_rgba(0,200,83,0.45)] cursor-pointer"
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl ${isDay ? 'whatsapp-tactile-btn-blue' : 'whatsapp-tactile-btn'} font-mono text-xs uppercase tracking-wider font-extrabold cursor-pointer select-none`}
             >
-              <MessageCircle size={15} />
-              <span>Direct WhatsApp</span>
+              <MessageCircle size={16} strokeWidth={2.5} className="text-white" />
+              <span>WHATSAPP</span>
             </a>
 
             <button
               onClick={() => setResumeModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] hover:bg-[#00C853] text-white hover:text-black border border-white/20 hover:border-[#00C853] font-mono text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_2px_12px_rgba(0,0,0,0.5)] hover:shadow-[0_0_25px_rgba(0,200,83,0.4)] cursor-pointer group"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl resume-tactile-white-btn font-mono text-xs uppercase tracking-wider font-bold cursor-pointer group select-none"
             >
-              <FileText size={15} className="text-[#00FF66] group-hover:text-black transition-colors" />
-              <span>View Resume / CV</span>
+              <FileText
+                size={16}
+                strokeWidth={2.2}
+                className={isDay ? "text-[#0066FF] group-hover:scale-110 transition-transform" : "text-[#00C853] group-hover:scale-110 transition-transform"}
+              />
+              <span>VIEW RESUME / CV</span>
             </button>
           </div>
         </div>
@@ -516,10 +564,10 @@ export default function App() {
         className="fixed bottom-4 left-4 lg:bottom-6 lg:left-6 z-50 hidden lg:flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110 cursor-pointer"
         style={{
           width: 38, height: 38,
-          background: 'rgba(5, 15, 8, 0.85)',
-          border: '1.5px solid rgba(0, 200, 83, 0.4)',
-          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0,200,83,0.2)',
-          color: soundEnabled ? '#00FF66' : '#8BAAA0',
+          background: isDay ? 'rgba(255, 255, 255, 0.9)' : 'rgba(5, 15, 8, 0.85)',
+          border: isDay ? '1.5px solid rgba(0, 102, 255, 0.4)' : '1.5px solid rgba(0, 200, 83, 0.4)',
+          boxShadow: isDay ? '0 2px 12px rgba(0, 0, 0, 0.15), 0 0 10px rgba(0,102,255,0.25)' : '0 2px 12px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0,200,83,0.2)',
+          color: soundEnabled ? (isDay ? '#0066FF' : '#00FF66') : (isDay ? '#64748B' : '#8BAAA0'),
         }}
         aria-label={soundEnabled ? 'Mute sound' : 'Enable sound'}
       >

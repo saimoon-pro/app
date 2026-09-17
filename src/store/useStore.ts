@@ -52,6 +52,12 @@ interface AppState {
   // Resume Modal
   resumeModalOpen: boolean;
   setResumeModalOpen: (open: boolean) => void;
+
+  // 24-Hour Celestial Time System (0.0 to 24.0)
+  timeOfDay: number;
+  setTimeOfDay: (time: number) => void;
+  isAutoClock: boolean;
+  setIsAutoClock: (auto: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -95,4 +101,11 @@ export const useStore = create<AppState>((set) => ({
 
   resumeModalOpen: false,
   setResumeModalOpen: (open) => set({ resumeModalOpen: open }),
+
+  // Default mode is Day Mode always (12:30 PM High Noon)
+  timeOfDay: 12.5,
+  setTimeOfDay: (time) => set({ timeOfDay: time }),
+  isAutoClock: false,
+  setIsAutoClock: (auto) => set({ isAutoClock: auto }),
 }));
+

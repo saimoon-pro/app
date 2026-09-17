@@ -13,6 +13,8 @@ interface Particle {
 export default function ParticleField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = useStore((s) => s.reducedMotion);
+  const timeOfDay = useStore((s) => s.timeOfDay);
+  const isDay = timeOfDay >= 7.5 && timeOfDay <= 17.5;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -89,7 +91,9 @@ export default function ParticleField() {
         // Draw
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 200, 83, ${p.opacity})`;
+        ctx.fillStyle = isDay
+          ? `rgba(0, 102, 255, ${p.opacity * 1.5})`
+          : `rgba(0, 200, 83, ${p.opacity})`;
         ctx.fill();
       }
 
@@ -103,7 +107,7 @@ export default function ParticleField() {
       window.removeEventListener('mousemove', onMouseMove);
       cancelAnimationFrame(raf);
     };
-  }, [reducedMotion]);
+  }, [reducedMotion, isDay]);
 
   return (
     <canvas

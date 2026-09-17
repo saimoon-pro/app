@@ -96,6 +96,8 @@ export default function OrbitalNav() {
   const [showHint, setShowHint] = useState(true);
   const activeNode = useStore((s) => s.activeNode);
   const setActiveNode = useStore((s) => s.setActiveNode);
+  const timeOfDay = useStore((s) => s.timeOfDay);
+  const isDay = timeOfDay >= 7.5 && timeOfDay <= 17.5;
   const { playHoverTick, playClick, playPanelOpen } = useSound();
   const { radius: ORBIT_RADIUS, nodeSize: NODE_SIZE } = useOrbitalSize();
 
@@ -305,7 +307,11 @@ export default function OrbitalNav() {
     <div
       ref={containerRef}
       className="relative select-none touch-none cursor-grab active:cursor-grabbing"
-      style={{ width: ORBIT_RADIUS * 2 + 80, height: ORBIT_RADIUS * 2 + 80 }}
+      style={{
+        width: ORBIT_RADIUS * 2 + 80,
+        height: ORBIT_RADIUS * 2 + 80,
+        filter: 'drop-shadow(var(--sun-shadow-x, 0px) var(--sun-shadow-y, 14px) 26px rgba(0, 0, 0, 0.45))',
+      }}
       role="radiogroup"
       aria-label="Site navigation universe"
       onPointerDown={handlePointerDown}
@@ -321,8 +327,8 @@ export default function OrbitalNav() {
           height: ORBIT_RADIUS * 2,
           top: 40,
           left: 40,
-          border: '1.5px solid rgba(0, 160, 60, 0.35)',
-          boxShadow: '0 0 25px rgba(0, 90, 35, 0.2)',
+          border: isDay ? '1.5px solid rgba(0, 102, 255, 0.45)' : '1.5px solid rgba(0, 160, 60, 0.35)',
+          boxShadow: isDay ? '0 0 30px rgba(0, 102, 255, 0.35)' : '0 0 25px rgba(0, 90, 35, 0.2)',
           transform: `rotate(${rotationAngle}deg)`,
           transformOrigin: 'center center',
           transition: isDragging ? 'none' : 'transform 0.12s ease-out',
@@ -339,8 +345,8 @@ export default function OrbitalNav() {
               style={{
                 width: isPrimary ? 5 : 2,
                 height: isPrimary ? 5 : 2,
-                background: isPrimary ? '#00FF66' : 'rgba(0, 140, 50, 0.4)',
-                boxShadow: isPrimary ? '0 0 8px #00FF66' : 'none',
+                background: isPrimary ? (isDay ? '#0066FF' : '#00FF66') : isDay ? 'rgba(0, 102, 255, 0.6)' : 'rgba(0, 140, 50, 0.4)',
+                boxShadow: isPrimary ? (isDay ? '0 0 8px #0066FF' : '0 0 8px #00FF66') : 'none',
                 top: '50%',
                 left: '50%',
                 transform: `translate(-50%, -50%) translate(${Math.cos(angle) * ORBIT_RADIUS}px, ${Math.sin(angle) * ORBIT_RADIUS}px)`,
@@ -396,7 +402,7 @@ export default function OrbitalNav() {
               }}
               onMouseLeave={() => setHoveredNode(null)}
             >
-              {/* ── 1. CONTINUOUSLY ROTATING MULTI-STAR GEAR (DARK-TYPE GREEN) ── */}
+              {/* ── 1. CONTINUOUSLY ROTATING MULTI-STAR GEAR (DAY WHITE / NIGHT OBSIDIAN) ── */}
               <div
                 className="absolute inset-0 pointer-events-none flex items-center justify-center"
                 style={{
@@ -407,7 +413,13 @@ export default function OrbitalNav() {
                   viewBox="0 0 100 100"
                   className="w-full h-full"
                   style={{
-                    filter: isActive
+                    filter: isDay
+                      ? isActive
+                        ? 'drop-shadow(0 0 18px rgba(0, 102, 255, 0.95)) drop-shadow(0 0 36px rgba(0, 102, 255, 0.6)) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3))'
+                        : isHovered
+                        ? 'drop-shadow(0 0 14px rgba(0, 102, 255, 0.85)) drop-shadow(0 0 28px rgba(0, 102, 255, 0.5)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22))'
+                        : 'drop-shadow(0 0 12px rgba(0, 102, 255, 0.75)) drop-shadow(0 0 20px rgba(0, 102, 255, 0.4)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.18))'
+                      : isActive
                       ? 'drop-shadow(0 0 12px rgba(0, 160, 60, 0.85)) drop-shadow(0 0 24px rgba(0, 90, 30, 0.6))'
                       : isHovered
                       ? 'drop-shadow(0 0 10px rgba(0, 140, 50, 0.75)) drop-shadow(0 0 18px rgba(0, 70, 25, 0.5))'
@@ -415,15 +427,24 @@ export default function OrbitalNav() {
                   }}
                 >
                   <defs>
-                    <radialGradient id={`gearGrad-${instanceId}-${node.id}`} cx="40%" cy="40%" r="60%">
-                      <stop offset="0%" stopColor="#00461E" />
-                      <stop offset="45%" stopColor="#002A12" />
-                      <stop offset="85%" stopColor="#001809" />
-                      <stop offset="100%" stopColor="#000F05" />
-                    </radialGradient>
+                    {isDay ? (
+                      <radialGradient id={`gearGrad-${instanceId}-${node.id}`} cx="40%" cy="40%" r="60%">
+                        <stop offset="0%" stopColor="#FFFFFF" />
+                        <stop offset="40%" stopColor="#F8FAF9" />
+                        <stop offset="75%" stopColor="#E2E8F0" />
+                        <stop offset="100%" stopColor="#CBD5E1" />
+                      </radialGradient>
+                    ) : (
+                      <radialGradient id={`gearGrad-${instanceId}-${node.id}`} cx="40%" cy="40%" r="60%">
+                        <stop offset="0%" stopColor="#00461E" />
+                        <stop offset="45%" stopColor="#002A12" />
+                        <stop offset="85%" stopColor="#001809" />
+                        <stop offset="100%" stopColor="#000F05" />
+                      </radialGradient>
+                    )}
                     <linearGradient id={`gearStroke-${instanceId}-${node.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor={isActive ? "#00A84D" : "#005E27"} />
-                      <stop offset="100%" stopColor={isActive ? "#005224" : "#003615"} />
+                      <stop offset="0%" stopColor={isDay ? (isActive ? "#0066FF" : "#FFFFFF") : (isActive ? "#00A84D" : "#005E27")} />
+                      <stop offset="100%" stopColor={isDay ? (isActive ? "#0048B3" : "#94A3B8") : (isActive ? "#005224" : "#003615")} />
                     </linearGradient>
                   </defs>
 
@@ -432,7 +453,7 @@ export default function OrbitalNav() {
                     d={STAR_GEAR_PATH}
                     fill={`url(#gearGrad-${instanceId}-${node.id})`}
                     stroke={`url(#gearStroke-${instanceId}-${node.id})`}
-                    strokeWidth="1.8"
+                    strokeWidth={isDay ? "2" : "1.8"}
                     strokeLinejoin="round"
                   />
 
@@ -441,8 +462,8 @@ export default function OrbitalNav() {
                     cx="50"
                     cy="50"
                     r="30"
-                    fill="#001608"
-                    stroke="#00421A"
+                    fill={isDay ? "#FFFFFF" : "#001608"}
+                    stroke={isDay ? "#CBD5E1" : "#00421A"}
                     strokeWidth="1.2"
                   />
 
@@ -452,7 +473,7 @@ export default function OrbitalNav() {
                     cy="50"
                     r="24"
                     fill="none"
-                    stroke={isActive ? "rgba(0, 200, 83, 0.45)" : "rgba(0, 130, 45, 0.3)"}
+                    stroke={isDay ? "rgba(0, 102, 255, 0.55)" : (isActive ? "rgba(0, 200, 83, 0.45)" : "rgba(0, 130, 45, 0.3)")}
                     strokeWidth="1"
                     strokeDasharray="3 3"
                   />
@@ -462,22 +483,25 @@ export default function OrbitalNav() {
                     cx="50"
                     cy="50"
                     r="19"
-                    fill="#000F05"
-                    stroke="#002B11"
+                    fill={isDay ? "#F1F5F9" : "#000F05"}
+                    stroke={isDay ? "#0066FF" : "#002B11"}
                     strokeWidth="1"
                   />
                 </svg>
               </div>
 
-              {/* ── 2. WHITE ICON ON TOP — COMPLETELY STILL & UPRIGHT (NO ROTATION) ── */}
+              {/* ── 2. OUTLINED 3D EXTRUDED ICON ON TOP (HIGH CONTRAST) ── */}
               <div
-                className="relative z-10 flex items-center justify-center pointer-events-none text-white transition-transform duration-200"
+                className="relative z-10 flex items-center justify-center pointer-events-none transition-all duration-300"
                 style={{
-                  transform: 'none', // Icon stays still
-                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8))',
+                  transform: 'none',
+                  color: isDay ? (isActive ? '#0066FF' : '#0B2546') : '#00FF66',
+                  filter: isDay
+                    ? 'drop-shadow(0 1px 0 #FFFFFF) drop-shadow(0 2px 1px rgba(0, 102, 255, 0.5)) drop-shadow(0 0 8px rgba(0, 102, 255, 0.75))'
+                    : 'drop-shadow(0 0 10px rgba(0, 255, 102, 0.8)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9))',
                 }}
               >
-                <Icon size={iconSize} strokeWidth={2.4} />
+                <Icon size={iconSize} strokeWidth={2.6} />
               </div>
 
               {/* Subtle Pulsing Hint Ripple on First Load */}
@@ -485,7 +509,7 @@ export default function OrbitalNav() {
                 <span
                   className="absolute inset-[-4px] rounded-full pointer-events-none"
                   style={{
-                    border: '1.5px solid rgba(0, 140, 50, 0.5)',
+                    border: isDay ? '1.5px solid rgba(0, 102, 255, 0.5)' : '1.5px solid rgba(0, 140, 50, 0.5)',
                     animation: 'orbit-hint-pulse 2.2s ease-in-out infinite',
                     animationDelay: `${index * 0.3}s`,
                   }}
@@ -500,13 +524,13 @@ export default function OrbitalNav() {
                     top: -24,
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    color: '#00FF66',
+                    color: isDay ? '#0066FF' : '#00FF66',
                     letterSpacing: '0.08em',
-                    background: 'rgba(2, 12, 6, 0.95)',
-                    border: '1px solid rgba(0, 140, 50, 0.5)',
+                    background: isDay ? 'rgba(255, 255, 255, 0.95)' : 'rgba(2, 12, 6, 0.95)',
+                    border: isDay ? '1px solid rgba(0, 102, 255, 0.5)' : '1px solid rgba(0, 140, 50, 0.5)',
                     padding: '2px 9px',
                     borderRadius: 999,
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.7), 0 0 10px rgba(0,80,30,0.4)',
+                    boxShadow: isDay ? '0 4px 15px rgba(0,0,0,0.25), 0 0 10px rgba(0,102,255,0.3)' : '0 4px 15px rgba(0,0,0,0.4), 0 0 10px rgba(0,80,30,0.3)',
                     animation: 'fade-in-up 0.2s ease-out',
                   }}
                 >
@@ -523,8 +547,20 @@ export default function OrbitalNav() {
               style={{
                 fontSize: labelFontSize,
                 letterSpacing: '0.08em',
-                color: isActive ? '#00FF66' : isHovered ? '#FFFFFF' : 'rgba(255, 255, 255, 0.85)',
-                textShadow: isActive || isHovered
+                color: isDay
+                  ? isActive
+                    ? '#0066FF'
+                    : isHovered
+                    ? '#000000'
+                    : '#0F172A'
+                  : isActive
+                  ? '#00FF66'
+                  : isHovered
+                  ? '#FFFFFF'
+                  : 'rgba(255, 255, 255, 0.85)',
+                textShadow: isDay
+                  ? '0 1px 1px #FFFFFF, 0 0 10px rgba(0, 102, 255, 0.3)'
+                  : isActive || isHovered
                   ? '0 0 10px rgba(0, 160, 60, 0.8), 0 2px 4px rgba(0,0,0,0.95)'
                   : '0 2px 4px rgba(0,0,0,0.95)',
               }}
