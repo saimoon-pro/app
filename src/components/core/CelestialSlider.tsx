@@ -3,7 +3,7 @@ import { useStore } from '@/store/useStore';
 import { Sun, Moon, Sunrise } from 'lucide-react';
 import { useSound } from '@/hooks/useSound';
 
-export default function CelestialSlider() {
+export default function CelestialSlider({ className = '' }: { className?: string }) {
   const timeOfDay = useStore((s) => s.timeOfDay);
   const setTimeOfDay = useStore((s) => s.setTimeOfDay);
   const isAutoClock = useStore((s) => s.isAutoClock);
@@ -119,13 +119,13 @@ export default function CelestialSlider() {
 
   return (
     <div
-      className="hidden md:flex fixed top-2 sm:top-3 lg:top-4 left-1/2 -translate-x-1/2 z-40 flex-col items-center select-none"
+      className={`hidden lg:flex flex-col items-center select-none ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* ── MAIN APPLE LIQUID GLASS CELESTIAL CONTROLLER CAPSULE ── */}
       <div
-        className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-300 shadow-2xl"
+        className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full transition-all duration-300 shadow-xl"
         style={{
           background: isDay
             ? 'rgba(255, 255, 255, 0.72)'
@@ -160,7 +160,7 @@ export default function CelestialSlider() {
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          className="relative w-32 sm:w-44 md:w-56 h-7 flex items-center cursor-pointer touch-none group"
+          className="relative w-28 sm:w-36 lg:w-40 xl:w-52 h-6 sm:h-7 flex items-center cursor-pointer touch-none group"
         >
           {/* Track Baseline Bar */}
           <div
@@ -233,7 +233,7 @@ export default function CelestialSlider() {
           </span>
 
           <span
-            className="hidden md:inline-block font-mono text-[9px] uppercase px-2 py-0.5 rounded-full font-semibold tracking-wider"
+            className="hidden xl:inline-block font-mono text-[9px] uppercase px-2 py-0.5 rounded-full font-semibold tracking-wider"
             style={{
               background: isDay ? 'rgba(0, 200, 83, 0.15)' : 'rgba(0, 200, 83, 0.2)',
               color: isDay ? '#007A33' : '#00FF66',

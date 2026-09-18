@@ -59,7 +59,7 @@ export default function ResumeButton() {
       {/* ─── Top-Right Floating Resume Header CTA ─── */}
       <div
         ref={menuRef}
-        className="fixed top-2.5 right-3 sm:top-3 sm:right-4 lg:top-7 lg:right-10 z-40 resume-cta-container select-none"
+        className="fixed top-2.5 right-3 sm:top-3 sm:right-4 lg:top-3.5 lg:right-8 xl:right-12 z-40 resume-cta-container select-none"
       >
         {/* Dropdown Menu (appears below the button) */}
         <div

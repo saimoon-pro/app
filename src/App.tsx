@@ -251,9 +251,6 @@ export default function App() {
       {/* ── CELESTIAL REAL-TIME 24H LIGHTING ENGINE & VIRTUAL SUN ── */}
       <CelestialLightingEngine />
 
-      {/* ── CELESTIAL CLOCK SCRUBBER SLIDER CONTROLLER (TOP CENTER) ── */}
-      <CelestialSlider />
-
       {/* Ambient Radial Accent */}
       <div
         className="bg-gradient-wash absolute inset-0 pointer-events-none"
@@ -447,138 +444,182 @@ export default function App() {
         <div style={{ height: 96, flexShrink: 0 }} />
       </div>
 
-      {/* ===================== DESKTOP SPLIT LAYOUT (>= 1024px) ===================== */}
-      <div className="relative z-10 hidden lg:grid lg:grid-cols-12 items-center h-full px-12 xl:px-20 2xl:px-28 pb-16">
-        {/* ── LEFT SIDE: HERO HEADLINE & DETAILS ── */}
-        <div className="col-span-6 flex flex-col gap-5 justify-center pr-4 max-w-2xl">
-          {/* Name - 2 lines */}
-          <h1
-            className={`font-display font-black tracking-tight ${isDay ? 'headline-3d-bevel-blue' : 'headline-3d-bevel'}`}
-            style={{ fontSize: 'clamp(46px, 4.4vw, 68px)', lineHeight: 1.04 }}
-          >
-            <span className="block whitespace-nowrap">
-              {'Muhammad'.split('').map((char, i) => (
-                <span key={`dm${i}`} className="name-letter inline-block" style={{ opacity: 0 }}>{char}</span>
-              ))}
-            </span>
-            <span className="block whitespace-nowrap">
-              {'Saimoon Hassan'.split('').map((char, i) => (
-                <span key={`ds${i}`} className="name-letter inline-block" style={{ opacity: 0 }}>
-                  {char === ' ' ? '\u00A0' : char}
-                </span>
-              ))}
-            </span>
-          </h1>
-
-          {/* Designation */}
-          <div className="designation flex items-center gap-3.5" style={{ opacity: 0 }}>
-            <div style={{ width: 44, height: 3, background: isDay ? '#0066FF' : '#00C853', boxShadow: isDay ? '0 0 8px #0066FF' : '0 0 8px #00C853' }} />
-            <span
-              className={`font-display text-2xl sm:text-3xl font-black uppercase tracking-[0.24em] ${isDay ? 'tagline-glossy-bevel-blue' : 'tagline-glossy-bevel'}`}
-            >
-              Creative Editor
-            </span>
-            <div style={{ width: 44, height: 3, background: isDay ? '#0066FF' : '#00C853', boxShadow: isDay ? '0 0 8px #0066FF' : '0 0 8px #00C853' }} />
-          </div>
-
-          {/* Role Ticker with Liquid Morph Glass */}
-          <div className="role-ticker flex items-center gap-3.5" style={{ opacity: 0 }}>
-            <LiquidRoleBadge
-              roles={ROLES}
-              currentIndex={roleIndex}
-              onSelectIndex={(idx) => {
-                playClick();
-                setRoleIndex(idx);
-              }}
-              onNext={() => {
-                playClick();
-                setRoleIndex((prev) => (prev + 1) % ROLES.length);
-              }}
-              isDay={isDay}
-              size="md"
-            />
-          </div>
-
-          {/* Tagline */}
-          <p
-            className="tagline text-base sm:text-[17px] leading-relaxed max-w-lg font-medium transition-colors duration-500"
+      {/* ===================== DESKTOP 3-ZONE STRUCTURED LAYOUT (>= 1024px) ===================== */}
+      <div className="relative z-10 hidden lg:flex flex-col justify-between w-full h-full select-none">
+        
+        {/* ── ZONE 1: TOP HEADER BAR (h-14 xl:h-16) ── */}
+        <header className="w-full h-14 xl:h-16 flex items-center justify-between px-8 xl:px-14 shrink-0 relative z-40">
+          {/* Left: Desktop Sound Toggle */}
+          <button
+            onClick={toggleSound}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full transition-all duration-300 hover:scale-105 cursor-pointer shadow-sm"
             style={{
-              opacity: 0,
-              color: isDay ? '#0F172A' : '#F1F5F9',
-              textShadow: isDay ? '0 1px 1px rgba(255,255,255,0.85)' : '0 1px 3px rgba(0,0,0,0.6)',
+              background: isDay ? 'rgba(255, 255, 255, 0.88)' : 'rgba(5, 15, 8, 0.88)',
+              border: isDay ? '1.5px solid rgba(0, 102, 255, 0.35)' : '1.5px solid rgba(0, 200, 83, 0.35)',
+              boxShadow: isDay ? '0 2px 10px rgba(0, 0, 0, 0.1), 0 0 8px rgba(0,102,255,0.2)' : '0 2px 10px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0,200,83,0.2)',
+              color: soundEnabled ? (isDay ? '#0066FF' : '#00FF66') : (isDay ? '#64748B' : '#8BAAA0'),
             }}
+            aria-label={soundEnabled ? 'Mute sound' : 'Enable sound'}
           >
-            Where creativity meets technology. I craft visual experiences
-            that move people — from pixels to motion to intelligent systems.
-          </p>
+            {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
+            <span className="text-[10px] font-mono font-bold tracking-wider uppercase">
+              {soundEnabled ? 'MUTE' : 'AUDIO'}
+            </span>
+          </button>
 
-          {/* Services Section Header in Left Hero Column */}
-          <div className="services-headline flex flex-col gap-1 pt-1" style={{ opacity: 0 }}>
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-2.5 h-2.5 rounded-full animate-pulse"
+          {/* Center: Celestial Slider Scrubber */}
+          <div className="flex-1 flex justify-center pointer-events-auto">
+            <CelestialSlider />
+          </div>
+
+          {/* Right: Symmetrical clearance spacer for fixed ResumeButton */}
+          <div className="w-32 xl:w-40 flex-shrink-0" />
+        </header>
+
+        {/* ── ZONE 2: MAIN INTERACTIVE CANVAS (flex-1 min-h-0) ── */}
+        <main className="flex-1 min-h-0 w-full flex items-center justify-center px-8 xl:px-14 2xl:px-20 py-1 sm:py-2">
+          <div className="w-full max-w-7xl mx-auto grid grid-cols-12 items-center gap-6 xl:gap-10 h-full">
+            
+            {/* ── LEFT SIDE: HERO HEADLINE & DETAILS ── */}
+            <div className="col-span-6 flex flex-col gap-2.5 sm:gap-3 xl:gap-4 2xl:gap-5 justify-center pr-2 xl:pr-6 max-w-xl">
+              {/* Name - 2 lines with fluid responsive typography */}
+              <h1
+                className={`font-display font-black tracking-tight ${isDay ? 'headline-3d-bevel-blue' : 'headline-3d-bevel'}`}
                 style={{
-                  background: isDay ? '#0066FF' : '#00C853',
-                  boxShadow: isDay ? '0 0 8px #0066FF' : '0 0 8px #00C853',
+                  fontSize: 'clamp(32px, min(3.6vw, 5.4vh), 54px)',
+                  lineHeight: 1.05,
                 }}
-              />
-              <span
-                className="font-mono text-xs font-black uppercase tracking-[0.28em]"
-                style={{ color: isDay ? '#0066FF' : '#00C853' }}
               >
-                — EXPLORE MY UNIVERSE —
-              </span>
+                <span className="block whitespace-nowrap">
+                  {'Muhammad'.split('').map((char, i) => (
+                    <span key={`dm${i}`} className="name-letter inline-block" style={{ opacity: 0 }}>{char}</span>
+                  ))}
+                </span>
+                <span className="block whitespace-nowrap">
+                  {'Saimoon Hassan'.split('').map((char, i) => (
+                    <span key={`ds${i}`} className="name-letter inline-block" style={{ opacity: 0 }}>
+                      {char === ' ' ? '\u00A0' : char}
+                    </span>
+                  ))}
+                </span>
+              </h1>
+
+              {/* Designation */}
+              <div className="designation flex items-center gap-3" style={{ opacity: 0 }}>
+                <div style={{ width: 34, height: 2.5, background: isDay ? '#0066FF' : '#00C853', boxShadow: isDay ? '0 0 8px #0066FF' : '0 0 8px #00C853' }} />
+                <span
+                  className={`font-display text-lg xl:text-xl 2xl:text-2xl font-black uppercase tracking-[0.22em] ${isDay ? 'tagline-glossy-bevel-blue' : 'tagline-glossy-bevel'}`}
+                >
+                  Creative Editor
+                </span>
+                <div style={{ width: 34, height: 2.5, background: isDay ? '#0066FF' : '#00C853', boxShadow: isDay ? '0 0 8px #0066FF' : '0 0 8px #00C853' }} />
+              </div>
+
+              {/* Role Ticker with Liquid Morph Glass */}
+              <div className="role-ticker flex items-center gap-3" style={{ opacity: 0 }}>
+                <LiquidRoleBadge
+                  roles={ROLES}
+                  currentIndex={roleIndex}
+                  onSelectIndex={(idx) => {
+                    playClick();
+                    setRoleIndex(idx);
+                  }}
+                  onNext={() => {
+                    playClick();
+                    setRoleIndex((prev) => (prev + 1) % ROLES.length);
+                  }}
+                  isDay={isDay}
+                  size="sm"
+                />
+              </div>
+
+              {/* Tagline */}
+              <p
+                className="tagline text-xs sm:text-sm xl:text-[15px] leading-relaxed max-w-lg font-medium transition-colors duration-500"
+                style={{
+                  opacity: 0,
+                  color: isDay ? '#0F172A' : '#F1F5F9',
+                  textShadow: isDay ? '0 1px 1px rgba(255,255,255,0.85)' : '0 1px 3px rgba(0,0,0,0.6)',
+                }}
+              >
+                Where creativity meets technology. I craft visual experiences
+                that move people — from pixels to motion to intelligent systems.
+              </p>
+
+              {/* Services Section Header in Left Hero Column */}
+              <div className="services-headline flex flex-col gap-0.5 pt-0.5" style={{ opacity: 0 }}>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full animate-pulse"
+                    style={{
+                      background: isDay ? '#0066FF' : '#00C853',
+                      boxShadow: isDay ? '0 0 8px #0066FF' : '0 0 8px #00C853',
+                    }}
+                  />
+                  <span
+                    className="font-mono text-[11px] font-black uppercase tracking-[0.26em]"
+                    style={{ color: isDay ? '#0066FF' : '#00C853' }}
+                  >
+                    — EXPLORE MY UNIVERSE —
+                  </span>
+                </div>
+                <h2
+                  className="font-display text-2xl xl:text-[28px] font-black tracking-tight transition-colors duration-500"
+                  style={{
+                    color: isDay ? '#0A2540' : '#FFFFFF',
+                    textShadow: isDay ? '0 1px 2px rgba(0, 102, 255, 0.15)' : '0 2px 6px rgba(0,0,0,0.7)',
+                  }}
+                >
+                  Services & Disciplines
+                </h2>
+              </div>
+
+              {/* Quick Direct Action CTA */}
+              <div className="flex items-center gap-3 xl:gap-4 pt-1">
+                <a
+                  href="https://wa.me/8801778011899"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-2 px-4.5 py-2.5 xl:px-5 xl:py-3 rounded-xl ${isDay ? 'whatsapp-tactile-btn-blue' : 'whatsapp-tactile-btn'} font-mono text-xs xl:text-sm uppercase tracking-wider font-black cursor-pointer select-none`}
+                >
+                  <MessageCircle size={16} strokeWidth={2.5} className="text-white" />
+                  <span>WHATSAPP</span>
+                </a>
+
+                <button
+                  onClick={() => setResumeModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4.5 py-2.5 xl:px-5 xl:py-3 rounded-xl resume-tactile-white-btn font-mono text-xs xl:text-sm uppercase tracking-wider font-bold cursor-pointer group select-none"
+                >
+                  <FileText
+                    size={16}
+                    strokeWidth={2.2}
+                    className={isDay ? "text-[#0066FF] group-hover:scale-110 transition-transform" : "text-[#00C853] group-hover:scale-110 transition-transform"}
+                  />
+                  <span>VIEW RESUME / CV</span>
+                </button>
+              </div>
             </div>
-            <h2
-              className="font-display text-3xl sm:text-[34px] font-black tracking-tight transition-colors duration-500"
-              style={{
-                color: isDay ? '#0A2540' : '#FFFFFF',
-                textShadow: isDay ? '0 1px 2px rgba(0, 102, 255, 0.15)' : '0 2px 6px rgba(0,0,0,0.7)',
-              }}
-            >
-              Services & Disciplines
-            </h2>
-          </div>
 
-          {/* Quick Direct Action CTA */}
-          <div className="flex items-center gap-4 pt-1">
-            <a
-              href="https://wa.me/8801778011899"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl ${isDay ? 'whatsapp-tactile-btn-blue' : 'whatsapp-tactile-btn'} font-mono text-sm uppercase tracking-wider font-black cursor-pointer select-none`}
-            >
-              <MessageCircle size={17} strokeWidth={2.5} className="text-white" />
-              <span>WHATSAPP</span>
-            </a>
-
-            <button
-              onClick={() => setResumeModalOpen(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl resume-tactile-white-btn font-mono text-sm uppercase tracking-wider font-bold cursor-pointer group select-none"
-            >
-              <FileText
-                size={17}
-                strokeWidth={2.2}
-                className={isDay ? "text-[#0066FF] group-hover:scale-110 transition-transform" : "text-[#00C853] group-hover:scale-110 transition-transform"}
-              />
-              <span>VIEW RESUME / CV</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ── RIGHT SIDE: PROFILE MACHINE & GLOWING STATIONARY ORBITAL OPTIONS (ZERO OVERLAP) ── */}
-        <div className="col-span-6 flex items-center justify-center relative">
-          <div className="relative flex items-center justify-center">
-            <ProfileMachine />
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-              onMouseEnter={() => setCursorHover(true)}
-              onMouseLeave={() => setCursorHover(false)}
-            >
-              <OrbitalNav />
+            {/* ── RIGHT SIDE: PROFILE MACHINE & GLOWING ORBITAL OPTIONS (ZERO OVERLAP) ── */}
+            <div className="col-span-6 flex items-center justify-center relative">
+              <div className="relative flex items-center justify-center">
+                <ProfileMachine />
+                <div
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                  onMouseEnter={() => setCursorHover(true)}
+                  onMouseLeave={() => setCursorHover(false)}
+                >
+                  <OrbitalNav />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </main>
+
+        {/* ── ZONE 3: BOTTOM DOCK ZONE (Height ~96px-110px) ── */}
+        <footer className="w-full h-24 xl:h-28 flex items-center justify-center shrink-0 relative z-30 pointer-events-none">
+          {/* Dedicated clearance zone for GearRegulator */}
+        </footer>
       </div>
 
       {/* ── 3D GEAR REGULATOR AT BOTTOM CENTER ── */}
@@ -586,22 +627,6 @@ export default function App() {
 
       {/* ── TIMED RELAX LEAD CAPTURE POPUP (3 MINUTE RECURRING) ── */}
       <LeadCaptureModal />
-
-      {/* Sound Toggle Button (Desktop only, mobile has it in header) */}
-      <button
-        onClick={toggleSound}
-        className="fixed bottom-4 left-4 lg:bottom-6 lg:left-6 z-50 hidden lg:flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110 cursor-pointer"
-        style={{
-          width: 38, height: 38,
-          background: isDay ? 'rgba(255, 255, 255, 0.9)' : 'rgba(5, 15, 8, 0.85)',
-          border: isDay ? '1.5px solid rgba(0, 102, 255, 0.4)' : '1.5px solid rgba(0, 200, 83, 0.4)',
-          boxShadow: isDay ? '0 2px 12px rgba(0, 0, 0, 0.15), 0 0 10px rgba(0,102,255,0.25)' : '0 2px 12px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0,200,83,0.2)',
-          color: soundEnabled ? (isDay ? '#0066FF' : '#00FF66') : (isDay ? '#64748B' : '#8BAAA0'),
-        }}
-        aria-label={soundEnabled ? 'Mute sound' : 'Enable sound'}
-      >
-        {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-      </button>
 
       <ResumeButton />
 

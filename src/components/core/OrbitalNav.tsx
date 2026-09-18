@@ -53,21 +53,21 @@ function useOrbitalSize() {
       if (w < 380) {
         setSize({ radius: 104, nodeSize: 40 });
       } else if (w < 480) {
-        setSize({ radius: 118, nodeSize: 44 });
+        setSize({ radius: 116, nodeSize: 44 });
       } else if (w < 640) {
-        setSize({ radius: 132, nodeSize: 50 });
+        setSize({ radius: 130, nodeSize: 50 });
       } else if (w < 768) {
-        setSize({ radius: 148, nodeSize: 54 });
+        setSize({ radius: 145, nodeSize: 54 });
       } else if (w < 1024) {
-        setSize({ radius: 165, nodeSize: 60 });
-      } else if (h < 780) {
-        setSize({ radius: 185, nodeSize: 66 });
-      } else if (h < 900) {
-        setSize({ radius: 215, nodeSize: 74 });
-      } else if (w < 1440) {
-        setSize({ radius: 235, nodeSize: 78 });
+        setSize({ radius: 160, nodeSize: 60 });
       } else {
-        setSize({ radius: 260, nodeSize: 84 });
+        // Desktop responsive calculation guaranteeing breathing room from header and footer
+        const availableH = h - 165; // clearance for top header (~60px) and bottom regulator (~105px)
+        const maxRadiusByH = (availableH / 2) - 62;
+        const maxRadiusByW = (w * 0.46 / 2) - 45;
+        const radius = Math.round(Math.max(160, Math.min(245, Math.min(maxRadiusByH, maxRadiusByW))));
+        const nodeSize = Math.round(Math.max(58, Math.min(78, radius * 0.32)));
+        setSize({ radius, nodeSize });
       }
     };
 

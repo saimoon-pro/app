@@ -261,7 +261,7 @@ export default function GearRegulator() {
       </div>
 
       {/* ── DESKTOP CONTROL SUITE (>= 1024px) ── */}
-      <div className="hidden lg:flex flex-col items-center scale-90 xl:scale-95 2xl:scale-100 origin-bottom">
+      <div className="hidden lg:flex flex-col items-center scale-80 lg:scale-85 xl:scale-95 2xl:scale-100 origin-bottom">
         {/* Step Labels 1 - 6 */}
         <div className={`flex items-center gap-2 mb-1.5 px-4 py-1 rounded-full bg-white/95 backdrop-blur-xl border ${isDay ? 'border-[#0066FF]/30 shadow-[0_8px_25px_rgba(0,0,0,0.15),0_0_15px_rgba(0,102,255,0.2)]' : 'border-[#00C853]/30 shadow-[0_8px_25px_rgba(0,0,0,0.2),0_0_15px_rgba(0,200,83,0.15)]'}`}>
           <Gauge size={12} className={`${isDay ? 'text-[#0066FF]' : 'text-[#00A84D]'} animate-pulse`} />

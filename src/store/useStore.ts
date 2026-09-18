@@ -9,6 +9,7 @@ interface AppState {
   // Sound toggle
   soundEnabled: boolean;
   toggleSound: () => void;
+  setSoundEnabled: (enabled: boolean) => void;
 
   // Reduced motion preference
   reducedMotion: boolean;
@@ -66,6 +67,7 @@ export const useStore = create<AppState>((set) => ({
 
   soundEnabled: true,
   toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+  setSoundEnabled: (enabled: boolean) => set({ soundEnabled: enabled }),
 
   reducedMotion: false,
   setReducedMotion: (value) => set({ reducedMotion: value }),

@@ -4,7 +4,7 @@ import { assetUrl } from '@/lib/assetUrl';
 import gsap from 'gsap';
 
 function useProfileSize() {
-  const [size, setSize] = useState(370);
+  const [size, setSize] = useState(300);
 
   useEffect(() => {
     const update = () => {
@@ -14,21 +14,20 @@ function useProfileSize() {
       if (w < 380) {
         setSize(142);
       } else if (w < 480) {
-        setSize(162);
+        setSize(160);
       } else if (w < 640) {
         setSize(180);
       } else if (w < 768) {
-        setSize(205);
+        setSize(200);
       } else if (w < 1024) {
-        setSize(230);
-      } else if (h < 780) {
-        setSize(260);
-      } else if (h < 900) {
-        setSize(305);
-      } else if (w < 1440) {
-        setSize(335);
+        setSize(225);
       } else {
-        setSize(370);
+        const availableH = h - 165;
+        const maxRadiusByH = (availableH / 2) - 62;
+        const maxRadiusByW = (w * 0.46 / 2) - 45;
+        const radius = Math.round(Math.max(160, Math.min(245, Math.min(maxRadiusByH, maxRadiusByW))));
+        // Perfectly proportional center machine guaranteeing clean 30px+ clearance to outer orbit cogs
+        setSize(Math.round(radius * 1.3));
       }
     };
 

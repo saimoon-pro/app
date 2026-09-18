@@ -40,7 +40,6 @@ export default function BackgroundVideoSystem() {
 
   // Intro video audio states
   const [isAudioMuted, setIsAudioMuted] = useState(false);
-  const [userInteracted, setUserInteracted] = useState(false);
 
   // Dual-Layer Constant-Luminance Dissolve System
   const [activeLayer, setActiveLayer] = useState<'A' | 'B'>('A');
@@ -78,7 +77,6 @@ export default function BackgroundVideoSystem() {
     : REGULATOR_VIDEOS[currentRegulator] || REGULATOR_VIDEOS[1];
 
   const soundEnabled = useStore((s) => s.soundEnabled);
-  const toggleSound = useStore((s) => s.toggleSound);
 
   // Sync intro video audio with global soundEnabled
   useEffect(() => {
@@ -95,6 +93,7 @@ export default function BackgroundVideoSystem() {
     const vid = welcomeVideoRef.current;
     if (!vid) return;
 
+    vid.currentTime = 0;
     vid.volume = 1.0;
     vid.muted = !soundEnabled;
 
@@ -106,22 +105,26 @@ export default function BackgroundVideoSystem() {
         })
         .catch((err) => {
           // Autoplay policy prevented unmuted audio playback without user gesture
-          console.warn('Browser autoplay required user gesture for unmuted audio. Starting muted until interaction:', err);
+          console.warn('Browser autoplay required user gesture for unmuted audio. Starting muted preview until interaction:', err);
           vid.muted = true;
+          vid.currentTime = 0;
           vid.play().catch(() => {});
           setIsAudioMuted(true);
         });
     }
 
-    // Touch/click/key/scroll/pointerdown anywhere immediately enables full audio if soundEnabled is true
+    // Touch/click/key/scroll/pointerdown anywhere immediately starts full audio from 0:00
     const unlockSound = () => {
       const v = welcomeVideoRef.current;
-      if (v && introState === 'welcome' && useStore.getState().soundEnabled) {
-        v.muted = false;
-        v.volume = 1.0;
-        v.play().catch(() => {});
-        setIsAudioMuted(false);
-        setUserInteracted(true);
+      if (v && introState === 'welcome') {
+        if (v.muted || isAudioMuted) {
+          v.currentTime = 0; // Rewind so audio and video play in 100% sync from the start
+          v.muted = false;
+          v.volume = 1.0;
+          v.play().catch(() => {});
+          setIsAudioMuted(false);
+          useStore.getState().setSoundEnabled(true);
+        }
       }
     };
 
@@ -138,35 +141,38 @@ export default function BackgroundVideoSystem() {
       window.removeEventListener('keydown', unlockSound);
       window.removeEventListener('wheel', unlockSound);
     };
-  }, [introState, soundEnabled]);
+  }, [introState, soundEnabled, isAudioMuted]);
 
   const toggleIntroSound = useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    toggleSound();
     const vid = welcomeVideoRef.current;
     if (!vid) return;
 
     if (vid.muted || isAudioMuted) {
+      // Enabling sound: Rewind to 0 so the user gets the intro with sound from the very start
+      vid.currentTime = 0;
       vid.muted = false;
       vid.volume = 1.0;
       vid.play().catch(() => {});
       setIsAudioMuted(false);
-      setUserInteracted(true);
+      useStore.getState().setSoundEnabled(true);
     } else {
       vid.muted = true;
       setIsAudioMuted(true);
+      useStore.getState().setSoundEnabled(false);
     }
-  }, [isAudioMuted, toggleSound]);
+  }, [isAudioMuted]);
 
   const handleIntroOverlayClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button')) return;
     const vid = welcomeVideoRef.current;
-    if (vid && soundEnabled) {
+    if (vid && (vid.muted || isAudioMuted)) {
+      vid.currentTime = 0; // Rewind to start
       vid.muted = false;
       vid.volume = 1.0;
       vid.play().catch(() => {});
       setIsAudioMuted(false);
-      setUserInteracted(true);
+      useStore.getState().setSoundEnabled(true);
     }
   };
 
@@ -210,19 +216,28 @@ export default function BackgroundVideoSystem() {
   useEffect(() => {
     if (introState !== 'welcome') return;
     const timer = setTimeout(() => {
-      triggerIntroDissolve();
-    }, 6200);
+      if (!isAudioMuted) {
+        triggerIntroDissolve();
+      }
+    }, isAudioMuted ? 16000 : 6200);
     return () => clearTimeout(timer);
-  }, [introState, triggerIntroDissolve]);
+  }, [introState, isAudioMuted, triggerIntroDissolve]);
 
   const handleWelcomeTimeUpdate = () => {
     if (welcomeVideoRef.current && introState === 'welcome') {
-      const t = welcomeVideoRef.current.currentTime;
-      if (welcomeVideoRef.current.playbackRate !== 1.0) {
-        welcomeVideoRef.current.playbackRate = 1.0;
+      const vid = welcomeVideoRef.current;
+      const t = vid.currentTime;
+      if (vid.playbackRate !== 1.0) {
+        vid.playbackRate = 1.0;
       }
       if (t >= 5.3) {
-        triggerIntroDissolve();
+        if (!isAudioMuted && !vid.muted) {
+          triggerIntroDissolve();
+        } else {
+          // Loop seamlessly while muted so user can click to hear full intro with sound from start
+          vid.currentTime = 0;
+          vid.play().catch(() => {});
+        }
       }
     }
   };
@@ -475,6 +490,7 @@ export default function BackgroundVideoSystem() {
             src={INTRO_VIDEO}
             autoPlay
             playsInline
+            muted={isAudioMuted}
             preload="auto"
             onEnded={triggerIntroDissolve}
             onTimeUpdate={handleWelcomeTimeUpdate}
@@ -508,19 +524,19 @@ export default function BackgroundVideoSystem() {
               onClick={toggleIntroSound}
               className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-xs uppercase tracking-wider backdrop-blur-md border transition-all duration-300 cursor-pointer shadow-lg group ${
                 isAudioMuted
-                  ? 'bg-amber-500/25 hover:bg-amber-500/40 text-amber-300 border-amber-500/50 animate-pulse'
+                  ? 'bg-amber-500/30 hover:bg-amber-500/50 text-amber-200 border-amber-400/60 animate-pulse shadow-[0_0_20px_rgba(245,158,11,0.4)]'
                   : 'bg-black/60 hover:bg-[#00C853]/90 text-[#00C853] hover:text-black border-[#00C853]/40 hover:border-[#00C853]'
               }`}
-              title={isAudioMuted ? 'Sound muted by browser - click to enable audio' : 'Sound playing'}
+              title={isAudioMuted ? 'Sound muted by browser - click to play intro with sound from start' : 'Sound playing'}
             >
               {isAudioMuted ? (
                 <>
-                  <VolumeX size={14} className="text-amber-400 group-hover:scale-110 transition-transform" />
-                  <span>Sound Muted (Click)</span>
+                  <VolumeX size={15} className="text-amber-300 group-hover:scale-110 transition-transform" />
+                  <span>Play Sound From Start</span>
                 </>
               ) : (
                 <>
-                  <Volume2 size={14} className="text-[#00C853] group-hover:scale-110 transition-transform" />
+                  <Volume2 size={15} className="text-[#00C853] group-hover:scale-110 transition-transform" />
                   <span>Sound ON</span>
                 </>
               )}
@@ -537,14 +553,16 @@ export default function BackgroundVideoSystem() {
           </div>
 
           {/* Audio Tap-to-Unmute Banner (if browser blocked initial audio) */}
-          {isAudioMuted && !userInteracted && (
+          {isAudioMuted && (
             <div
               onClick={toggleIntroSound}
-              className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-amber-500/25 backdrop-blur-md border border-amber-500/50 z-50 shadow-2xl cursor-pointer hover:bg-amber-500/40 transition-all duration-200 animate-bounce"
+              className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-3 rounded-full bg-black/75 hover:bg-black/90 backdrop-blur-xl border border-[#00FF66]/60 z-50 shadow-[0_0_35px_rgba(0,255,102,0.45)] cursor-pointer transition-all duration-300 animate-bounce hover:scale-105"
             >
-              <VolumeX size={16} className="text-amber-300" />
-              <span className="font-mono text-xs text-amber-200 tracking-wider uppercase font-semibold">
-                Tap anywhere to enable sound
+              <div className="w-6 h-6 rounded-full bg-[#00FF66] flex items-center justify-center text-black flex-shrink-0">
+                <Volume2 size={14} />
+              </div>
+              <span className="font-mono text-xs sm:text-sm text-white tracking-wider uppercase font-bold">
+                Click anywhere to play intro with sound (From Start)
               </span>
             </div>
           )}
