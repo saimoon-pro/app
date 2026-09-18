@@ -72,9 +72,25 @@
     <link rel="dns-prefetch" href="https://docs.google.com" />
     <link rel="dns-prefetch" href="https://drive.google.com" />
 
-    <!-- ═══════════════ FONTS (with preload for critical) ═══════════════ -->
+    <!-- ═══════════════ CRITICAL ASSET PRELOADS & MEDIA CACHE ═══════════════ -->
+    <link rel="preload" href="/saimoon/backgrounds/Intro.mp4" as="video" type="video/mp4" crossorigin="anonymous" fetchpriority="high" />
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" as="style" />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <script>
+      // Early Service Worker registration & sound state initialization
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/saimoon/sw.js', { scope: '/saimoon/' }).catch(function() {});
+        });
+      }
+      try {
+        if (!document.cookie.includes('saimoon_audio_unmuted=')) {
+          var exp = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+          document.cookie = 'saimoon_audio_unmuted=1;expires=' + exp + ';path=/;SameSite=Lax';
+        }
+      } catch (e) {}
+    </script>
 
     <!-- ═══════════════ SCHEMA.ORG JSON-LD STRUCTURED DATA ═══════════════ -->
     <script type="application/ld+json">

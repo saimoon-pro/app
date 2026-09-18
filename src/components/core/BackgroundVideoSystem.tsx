@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useStore } from '@/store/useStore';
 import { assetUrl } from '@/lib/assetUrl';
+import { videoCacheService } from '@/services/videoCacheService';
+import { markIntroSeen, saveAudioPref } from '@/lib/cookieManager';
 import { SkipForward, Volume2, VolumeX } from 'lucide-react';
 
 const REGULATOR_VIDEOS: Record<number, string> = {
@@ -55,6 +57,13 @@ export default function BackgroundVideoSystem() {
   const currentVideoSrcRef = useRef<string>(REGULATOR_VIDEOS[currentRegulator] || REGULATOR_VIDEOS[1]);
   const transitionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Initialize media caching engine & start background preloading queue
+  useEffect(() => {
+    videoCacheService.registerServiceWorker();
+    videoCacheService.preloadIntroVideo().catch(() => {});
+    videoCacheService.startBackgroundPreloadQueue();
+  }, []);
+
   // Clean up transition timer on unmount
   useEffect(() => {
     return () => {
@@ -81,13 +90,13 @@ export default function BackgroundVideoSystem() {
   // Sync intro video audio with global soundEnabled
   useEffect(() => {
     const vid = welcomeVideoRef.current;
-    if (vid) {
+    if (vid && introState === 'welcome') {
       vid.muted = !soundEnabled;
       setIsAudioMuted(!soundEnabled);
     }
-  }, [soundEnabled]);
+  }, [soundEnabled, introState]);
 
-  // Auto-play intro video with audio ON by default, handling browser autoplay policies
+  // Auto-play intro video with audio UNMUTED by default from the start (Entrance Signal)
   useEffect(() => {
     if (introState !== 'welcome') return;
     const vid = welcomeVideoRef.current;
@@ -95,24 +104,33 @@ export default function BackgroundVideoSystem() {
 
     vid.currentTime = 0;
     vid.volume = 1.0;
-    vid.muted = !soundEnabled;
+    vid.muted = false; // Always attempt unmuted entrance
 
     const playPromise = vid.play();
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          setIsAudioMuted(!soundEnabled);
+          setIsAudioMuted(false);
+          vid.loop = false;
         })
         .catch((err) => {
+<<<<<<< Updated upstream
           // Autoplay policy prevented unmuted audio playback without user gesture
           console.warn('Browser autoplay required user gesture for unmuted audio. Starting muted preview until interaction:', err);
           vid.muted = true;
           vid.currentTime = 0;
+=======
+          // Browser policy requires user interaction before unmuted audio can play
+          console.warn('Browser autoplay required user interaction for unmuted audio:', err);
+          vid.muted = true;
+          vid.loop = true; // Loop video smoothly until user interacts so sound isn't missed!
+>>>>>>> Stashed changes
           vid.play().catch(() => {});
           setIsAudioMuted(true);
         });
     }
 
+<<<<<<< Updated upstream
     // Touch/click/key/scroll/pointerdown anywhere immediately starts full audio from 0:00
     const unlockSound = () => {
       const v = welcomeVideoRef.current;
@@ -125,29 +143,53 @@ export default function BackgroundVideoSystem() {
           setIsAudioMuted(false);
           useStore.getState().setSoundEnabled(true);
         }
+=======
+    // Capture any user interaction anywhere on the screen to immediately activate unmuted audio
+    const unlockSound = () => {
+      const v = welcomeVideoRef.current;
+      if (!v || introState !== 'welcome') return;
+      if (v.muted || isAudioMuted) {
+        v.currentTime = 0; // Play from beginning as entry signal
+        v.muted = false;
+        v.volume = 1.0;
+        v.loop = false; // Play to completion and then dissolve
+        v.play()
+          .then(() => {
+            setIsAudioMuted(false);
+            setUserInteracted(true);
+          })
+          .catch(() => {});
+        useStore.setState({ soundEnabled: true });
+        saveAudioPref(true);
+>>>>>>> Stashed changes
       }
     };
 
-    window.addEventListener('pointerdown', unlockSound, { once: true });
-    window.addEventListener('click', unlockSound, { once: true });
-    window.addEventListener('touchstart', unlockSound, { once: true });
-    window.addEventListener('keydown', unlockSound, { once: true });
-    window.addEventListener('wheel', unlockSound, { once: true });
+    window.addEventListener('pointerdown', unlockSound, { capture: true, passive: true });
+    window.addEventListener('mousedown', unlockSound, { capture: true, passive: true });
+    window.addEventListener('touchstart', unlockSound, { capture: true, passive: true });
+    window.addEventListener('keydown', unlockSound, { capture: true, passive: true });
+    window.addEventListener('click', unlockSound, { capture: true, passive: true });
 
     return () => {
-      window.removeEventListener('pointerdown', unlockSound);
-      window.removeEventListener('click', unlockSound);
-      window.removeEventListener('touchstart', unlockSound);
-      window.removeEventListener('keydown', unlockSound);
-      window.removeEventListener('wheel', unlockSound);
+      window.removeEventListener('pointerdown', unlockSound, { capture: true });
+      window.removeEventListener('mousedown', unlockSound, { capture: true });
+      window.removeEventListener('touchstart', unlockSound, { capture: true });
+      window.removeEventListener('keydown', unlockSound, { capture: true });
+      window.removeEventListener('click', unlockSound, { capture: true });
     };
+<<<<<<< Updated upstream
   }, [introState, soundEnabled, isAudioMuted]);
+=======
+  }, [introState]);
+>>>>>>> Stashed changes
 
   const toggleIntroSound = useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const vid = welcomeVideoRef.current;
     if (!vid) return;
 
+<<<<<<< Updated upstream
     if (vid.muted || isAudioMuted) {
       // Enabling sound: Rewind to 0 so the user gets the intro with sound from the very start
       vid.currentTime = 0;
@@ -156,10 +198,34 @@ export default function BackgroundVideoSystem() {
       vid.play().catch(() => {});
       setIsAudioMuted(false);
       useStore.getState().setSoundEnabled(true);
+=======
+    if (isAudioMuted || vid.muted) {
+      // Unmute
+      if (vid.currentTime > 2.0) {
+        vid.currentTime = 0;
+      }
+      vid.muted = false;
+      vid.volume = 1.0;
+      vid.loop = false;
+      vid.play()
+        .then(() => {
+          setIsAudioMuted(false);
+          setUserInteracted(true);
+        })
+        .catch(() => {});
+      useStore.setState({ soundEnabled: true });
+      saveAudioPref(true);
+>>>>>>> Stashed changes
     } else {
+      // Mute
       vid.muted = true;
       setIsAudioMuted(true);
+<<<<<<< Updated upstream
       useStore.getState().setSoundEnabled(false);
+=======
+      useStore.setState({ soundEnabled: false });
+      saveAudioPref(false);
+>>>>>>> Stashed changes
     }
   }, [isAudioMuted]);
 
@@ -167,12 +233,27 @@ export default function BackgroundVideoSystem() {
     if ((e.target as HTMLElement).closest('button')) return;
     const vid = welcomeVideoRef.current;
     if (vid && (vid.muted || isAudioMuted)) {
+<<<<<<< Updated upstream
       vid.currentTime = 0; // Rewind to start
       vid.muted = false;
       vid.volume = 1.0;
       vid.play().catch(() => {});
       setIsAudioMuted(false);
       useStore.getState().setSoundEnabled(true);
+=======
+      vid.currentTime = 0;
+      vid.muted = false;
+      vid.volume = 1.0;
+      vid.loop = false;
+      vid.play()
+        .then(() => {
+          setIsAudioMuted(false);
+          setUserInteracted(true);
+        })
+        .catch(() => {});
+      useStore.setState({ soundEnabled: true });
+      saveAudioPref(true);
+>>>>>>> Stashed changes
     }
   };
 
@@ -207,6 +288,7 @@ export default function BackgroundVideoSystem() {
       setTimeout(() => {
         setIntroState('completed');
         setIntroCompleted(true);
+        markIntroSeen();
       }, 1000);
       return 'dissolving';
     });
@@ -293,15 +375,8 @@ export default function BackgroundVideoSystem() {
       lastFrameTimeRef.current = now;
 
       if (introState === 'welcome') {
-        const welcomeVid = welcomeVideoRef.current;
-        if (welcomeVid && welcomeVid.readyState >= 2) {
-          if (welcomeVid.playbackRate !== 1.0) {
-            welcomeVid.playbackRate = 1.0;
-          }
-          if (welcomeVid.currentTime >= 5.3) {
-            triggerIntroDissolve();
-          }
-        }
+        animId = requestAnimationFrame(updatePlayback);
+        return;
       } else if (introState === 'completed' || introState === 'dissolving') {
         const videos = [videoARef.current, videoBRef.current].filter(Boolean) as HTMLVideoElement[];
 
@@ -491,10 +566,22 @@ export default function BackgroundVideoSystem() {
             autoPlay
             playsInline
             muted={isAudioMuted}
+<<<<<<< Updated upstream
+=======
+            loop={isAudioMuted}
+>>>>>>> Stashed changes
             preload="auto"
-            onEnded={triggerIntroDissolve}
+            onEnded={() => {
+              if (!isAudioMuted) {
+                triggerIntroDissolve();
+              }
+            }}
             onTimeUpdate={handleWelcomeTimeUpdate}
             className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              transform: 'translate3d(0, 0, 0)',
+              willChange: 'transform',
+            }}
           />
 
           {/* ── CINEMATIC BLACK VIGNETTE ON INTRO SCREEN (Matching Background Videos) ── */}
@@ -503,7 +590,6 @@ export default function BackgroundVideoSystem() {
             style={{
               background:
                 'radial-gradient(ellipse at center, rgba(10, 26, 15, 0.4) 0%, rgba(5, 15, 8, 0.8) 100%)',
-              backdropFilter: 'blur(0.5px)',
             }}
           />
 
@@ -527,12 +613,21 @@ export default function BackgroundVideoSystem() {
                   ? 'bg-amber-500/30 hover:bg-amber-500/50 text-amber-200 border-amber-400/60 animate-pulse shadow-[0_0_20px_rgba(245,158,11,0.4)]'
                   : 'bg-black/60 hover:bg-[#00C853]/90 text-[#00C853] hover:text-black border-[#00C853]/40 hover:border-[#00C853]'
               }`}
+<<<<<<< Updated upstream
               title={isAudioMuted ? 'Sound muted by browser - click to play intro with sound from start' : 'Sound playing'}
             >
               {isAudioMuted ? (
                 <>
                   <VolumeX size={15} className="text-amber-300 group-hover:scale-110 transition-transform" />
                   <span>Play Sound From Start</span>
+=======
+              title={isAudioMuted ? 'Sound muted - click to enable audio' : 'Sound playing'}
+            >
+              {isAudioMuted ? (
+                <>
+                  <Volume2 size={14} className="text-amber-400 group-hover:scale-110 transition-transform animate-bounce" />
+                  <span>Unmute Audio</span>
+>>>>>>> Stashed changes
                 </>
               ) : (
                 <>
@@ -552,6 +647,7 @@ export default function BackgroundVideoSystem() {
             </button>
           </div>
 
+<<<<<<< Updated upstream
           {/* Audio Tap-to-Unmute Banner (if browser blocked initial audio) */}
           {isAudioMuted && (
             <div
@@ -573,6 +669,28 @@ export default function BackgroundVideoSystem() {
             <span className="font-mono text-xs text-white/90 tracking-widest uppercase">
               Welcome to Saimoon's Digital Universe
             </span>
+=======
+          {/* Welcoming Subtitle Banner / Tap to Enter Audio Indicator */}
+          <div
+            onClick={handleIntroOverlayClick}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-2.5 rounded-full bg-black/70 backdrop-blur-md border border-emerald-500/40 hover:border-[#00C853] transition-all cursor-pointer z-50 shadow-xl group"
+          >
+            {isAudioMuted ? (
+              <>
+                <Volume2 size={15} className="text-[#00C853] animate-pulse group-hover:scale-110 transition-transform" />
+                <span className="font-mono text-xs text-white/95 tracking-widest uppercase">
+                  Click Anywhere to Enter With Audio
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-[#00C853] animate-ping" />
+                <span className="font-mono text-xs text-white/90 tracking-widest uppercase">
+                  Welcome to Saimoon's Digital Universe
+                </span>
+              </>
+            )}
+>>>>>>> Stashed changes
           </div>
         </div>
       )}
@@ -582,14 +700,14 @@ export default function BackgroundVideoSystem() {
       <video
         ref={videoARef}
         src={layerAVideo || undefined}
-        autoPlay
+        autoPlay={introCompleted}
         loop
         muted
         playsInline
-        preload="auto"
+        preload={introCompleted ? "auto" : "metadata"}
         className="absolute inset-0 w-full h-full object-cover"
         style={{
-          opacity: opacityA,
+          opacity: introState === 'welcome' ? 0 : opacityA,
           zIndex: zIndexA,
           transform: 'translate3d(0, 0, 0)',
           willChange: 'opacity',
@@ -602,11 +720,11 @@ export default function BackgroundVideoSystem() {
       <video
         ref={videoBRef}
         src={layerBVideo || undefined}
-        autoPlay
+        autoPlay={introCompleted}
         loop
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           opacity: opacityB,

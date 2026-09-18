@@ -53,7 +53,7 @@ export default function ParticleField() {
 
     let raf: number;
     const animate = () => {
-      if (document.hidden) {
+      if (document.hidden || !useStore.getState().introCompleted) {
         raf = requestAnimationFrame(animate);
         return;
       }
