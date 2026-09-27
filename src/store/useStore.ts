@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { OrbitNodeId, ChatMessage, ContentItem } from '@/types/content';
+import { getSavedAudioPref, saveAudioPref } from '@/lib/cookieManager';
 
 interface AppState {
   // Active orbit node (which content panel is open)
@@ -65,9 +66,19 @@ export const useStore = create<AppState>((set) => ({
   activeNode: null,
   setActiveNode: (node) => set({ activeNode: node }),
 
+<<<<<<< Updated upstream
   soundEnabled: true,
   toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
   setSoundEnabled: (enabled: boolean) => set({ soundEnabled: enabled }),
+=======
+  soundEnabled: getSavedAudioPref(),
+  toggleSound: () =>
+    set((state) => {
+      const next = !state.soundEnabled;
+      saveAudioPref(next);
+      return { soundEnabled: next };
+    }),
+>>>>>>> Stashed changes
 
   reducedMotion: false,
   setReducedMotion: (value) => set({ reducedMotion: value }),
