@@ -13,33 +13,37 @@ interface Particle {
 export default function ParticleField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = useStore((s) => s.reducedMotion);
-  const timeOfDay = useStore((s) => s.timeOfDay);
-  const isDay = timeOfDay >= 7.5 && timeOfDay <= 17.5;
+  const isDay = useStore((s) => s.timeOfDay >= 7.5 && s.timeOfDay <= 17.5);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
     };
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
 
     // Optimized particle count for high frame rate
-    const particleCount = window.innerWidth < 768 ? 15 : 28;
+    const particleCount = width < 768 ? 14 : 24;
     const particles: Particle[] = [];
     for (let i = 0; i < particleCount; i++) {
       particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 1.8 + 1.2,
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        size: Math.random() * 1.5 + 1.2,
         opacity: Math.random() * 0.1 + 0.05,
       });
     }
@@ -58,44 +62,38 @@ export default function ParticleField() {
         return;
       }
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, width, height);
 
-      for (const p of particles) {
+      ctx.beginPath();
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
         if (!reducedMotion) {
-          // Optimized squared-distance repulsion check
           const dx = p.x - mouse.x;
           const dy = p.y - mouse.y;
           const distSq = dx * dx + dy * dy;
           if (distSq < 10000 && distSq > 0) {
             const dist = Math.sqrt(distSq);
-            const force = (100 - dist) / 100 * 0.4;
+            const force = ((100 - dist) / 100) * 0.4;
             p.vx += (dx / dist) * force;
             p.vy += (dy / dist) * force;
           }
 
-          // Apply velocity
           p.x += p.vx;
           p.y += p.vy;
-
-          // Damping
           p.vx *= 0.99;
           p.vy *= 0.99;
 
-          // Wrap around
-          if (p.x < 0) p.x = canvas.width;
-          if (p.x > canvas.width) p.x = 0;
-          if (p.y < 0) p.y = canvas.height;
-          if (p.y > canvas.height) p.y = 0;
+          if (p.x < 0) p.x = width;
+          else if (p.x > width) p.x = 0;
+          if (p.y < 0) p.y = height;
+          else if (p.y > height) p.y = 0;
         }
 
-        // Draw
-        ctx.beginPath();
+        ctx.moveTo(p.x + p.size, p.y);
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = isDay
-          ? `rgba(0, 102, 255, ${p.opacity * 1.5})`
-          : `rgba(0, 200, 83, ${p.opacity})`;
-        ctx.fill();
       }
+      ctx.fillStyle = isDay ? 'rgba(0, 102, 255, 0.2)' : 'rgba(0, 200, 83, 0.16)';
+      ctx.fill();
 
       raf = requestAnimationFrame(animate);
     };
@@ -112,7 +110,8 @@ export default function ParticleField() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
+      className="fixed inset-0 pointer-events-none z-0 will-change-transform"
+      style={{ transform: 'translateZ(0)' }}
     />
   );
 }

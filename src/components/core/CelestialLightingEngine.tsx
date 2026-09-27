@@ -162,12 +162,13 @@ export default function CelestialLightingEngine() {
         >
           {/* ── REAL LIFE OPTICAL SUN FLARE (Primary Optical Diffraction Flare) ── */}
           <div
-            className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 select-none"
+            className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 select-none will-change-transform"
             style={{
               width: 720,
               height: 720,
+              transform: 'translateZ(0)',
               animation: 'solar-optical-flare 8s ease-in-out infinite',
-              filter: 'drop-shadow(0 0 35px rgba(255, 220, 140, 0.75))',
+              filter: 'drop-shadow(0 0 30px rgba(255, 220, 140, 0.7))',
             }}
           >
             <img
@@ -178,18 +179,19 @@ export default function CelestialLightingEngine() {
                 mixBlendMode: 'screen',
                 filter:
                   timeStage === 'sunrise' || timeStage === 'sunset'
-                    ? 'sepia(0.4) saturate(200%) hue-rotate(-15deg) contrast(115%)'
-                    : 'saturate(140%) contrast(110%)',
+                    ? 'sepia(0.4) saturate(180%) hue-rotate(-15deg)'
+                    : 'saturate(130%)',
               }}
             />
           </div>
 
           {/* ── SECONDARY ROTATING OPTICAL SHIMMER LAYER (Solar Heat Scintillation) ── */}
           <div
-            className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 select-none opacity-80"
+            className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 select-none opacity-80 will-change-transform"
             style={{
               width: 580,
               height: 580,
+              transform: 'translateZ(0)',
               animation: 'solar-corona-shimmer 6s ease-in-out infinite',
             }}
           >
@@ -201,8 +203,8 @@ export default function CelestialLightingEngine() {
                 mixBlendMode: 'screen',
                 filter:
                   timeStage === 'sunrise' || timeStage === 'sunset'
-                    ? 'sepia(0.5) saturate(220%) hue-rotate(-20deg)'
-                    : 'saturate(160%) brightness(1.1)',
+                    ? 'sepia(0.5) saturate(200%) hue-rotate(-20deg)'
+                    : 'saturate(150%)',
                 transform: 'scaleX(-1) rotate(45deg)',
               }}
             />
@@ -210,10 +212,11 @@ export default function CelestialLightingEngine() {
 
           {/* Anamorphic Horizontal Glare Streak (35mm Cine-Lens Glare with Breathing) */}
           <div
-            className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 will-change-transform"
             style={{
               width: 850,
               height: 3.5,
+              transform: 'translateZ(0)',
               background:
                 'linear-gradient(90deg, transparent 0%, rgba(200,230,255,0.2) 15%, rgba(255,245,210,0.6) 35%, rgba(255,255,255,0.95) 50%, rgba(255,245,210,0.6) 65%, rgba(200,230,255,0.2) 85%, transparent 100%)',
               filter: 'blur(0.8px)',
@@ -224,24 +227,25 @@ export default function CelestialLightingEngine() {
 
           {/* Outer Sun Ambient Glow & Corona Flares */}
           <div
-            className="absolute rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            className="absolute rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2 will-change-transform"
             style={{
               width: 360,
               height: 360,
+              transform: 'translateZ(0)',
               background:
                 timeStage === 'sunrise' || timeStage === 'sunset'
-                  ? 'radial-gradient(circle, rgba(255, 170, 60, 0.4) 0%, rgba(255, 120, 30, 0.2) 35%, transparent 70%)'
-                  : 'radial-gradient(circle, rgba(255, 250, 220, 0.45) 0%, rgba(255, 220, 120, 0.22) 40%, transparent 70%)',
-              filter: 'blur(26px)',
+                  ? 'radial-gradient(circle, rgba(255, 170, 60, 0.35) 0%, rgba(255, 120, 30, 0.15) 40%, transparent 70%)'
+                  : 'radial-gradient(circle, rgba(255, 250, 220, 0.4) 0%, rgba(255, 220, 120, 0.18) 45%, transparent 70%)',
             }}
           />
 
           {/* Core Radiant Sun Orb */}
           <div
-            className="relative rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            className="relative rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2 will-change-transform"
             style={{
               width: 64,
               height: 64,
+              transform: 'translateZ(0)',
               background:
                 timeStage === 'sunrise' || timeStage === 'sunset'
                   ? 'radial-gradient(circle at 35% 35%, #FFF7ED 0%, #FDBA74 40%, #EA580C 100%)'
@@ -259,22 +263,23 @@ export default function CelestialLightingEngine() {
       {/* ── CELESTIAL VIRTUAL MOON (NIGHT MODE) ── */}
       {!isDaytime && moonOpacity > 0.01 && (
         <div
-          className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-700 ease-out"
+          className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-700 ease-out will-change-transform"
           style={{
             left: `${moonX}%`,
             top: `${moonY}%`,
             opacity: moonOpacity,
+            transform: 'translateZ(0)',
           }}
         >
           {/* Outer Lunar Ambient Bloom / Moonlight Diffusion */}
           <div
-            className="absolute rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            className="absolute rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2 will-change-transform"
             style={{
               width: 380,
               height: 380,
+              transform: 'translateZ(0)',
               background:
-                'radial-gradient(circle, rgba(186, 230, 253, 0.28) 0%, rgba(147, 197, 253, 0.12) 35%, transparent 70%)',
-              filter: 'blur(32px)',
+                'radial-gradient(circle, rgba(186, 230, 253, 0.25) 0%, rgba(147, 197, 253, 0.1) 40%, transparent 70%)',
               animation: 'lunar-ambient-pulse 6s ease-in-out infinite',
             }}
           />

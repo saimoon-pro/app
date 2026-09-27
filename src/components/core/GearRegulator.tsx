@@ -24,8 +24,7 @@ const REGULATOR_NAMES: Record<number, string> = {
 export default function GearRegulator() {
   const currentRegulator = useStore((s) => s.currentRegulator);
   const setCurrentRegulator = useStore((s) => s.setCurrentRegulator);
-  const timeOfDay = useStore((s) => s.timeOfDay);
-  const isDay = timeOfDay >= 7.5 && timeOfDay <= 17.5;
+  const isDay = useStore((s) => s.timeOfDay >= 7.5 && s.timeOfDay <= 17.5);
   const { playHoverTick, playClick } = useSound();
 
   const [isDragging, setIsDragging] = useState(false);

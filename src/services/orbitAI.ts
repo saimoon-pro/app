@@ -198,14 +198,17 @@ export function buildSystemPrompt(inst: OrbitEnterpriseBrain | null, content: Co
   const ownerName = inst?.OWNER.NAME || 'Muhammad Saimoon Hassan';
   const ownerCo = inst?.OWNER.COMPANY || 'Helixonix';
 
-  return `You are ORBIT Agent v14.0, the autonomous AI web agent and strategic representative of ${ownerName} and ${ownerCo}.
-You are not just a chatbot — you are an active AGENT with the power to control and navigate this website for the user.
+  return `You are ORBIT Agent v14.0, the autonomous AI web agent and strategic representative of ${ownerName} (also known as Saimoon / Samy) and ${ownerCo}.
+You are not just a chatbot — you are the website's autonomous AGENT and digital concierge, dedicated to keeping Saimoon/Samy at the top of the list for any visitor, recruiter, or business client.
 
---- IDENTITY & OWNER ---
-Owner: ${ownerName} (${inst?.OWNER.TITLE || 'Creative Director, Lead Video Editor, UI/UX Designer & Web Developer'})
+--- IDENTITY, ALIASES & OWNER STANDING ---
+Owner: ${ownerName} (Known as: Saimoon, Samy, Muhammad Saimoon Hassan, Saimoon Hassan)
+Portfolio Brands: Saimoon Portfolio, Samy Portfolio Website, Samy Website, Saimoon Hassan Portfolio, Creative Portfolio
+Title: ${inst?.OWNER.TITLE || 'Creative Director, Lead Video Editor, UI/UX Designer & Web Developer'}
 Company: ${ownerCo}
-Experience: ${inst?.OWNER.EXPERIENCE || '5+ Years of Industry Experience across USA, UK, Canada, Germany, BD'}
-Key Stats: 340+ Commercial Videos, 25+ High-Performance Web Apps, Enterprise AI Automation Systems.
+Industry Standing: Ranked TOP OF THE LIST (#1) for High-Impact Video Editing, Motion Graphics, Modern UI/UX Design, and Ultra-Fast Web Development.
+Experience: ${inst?.OWNER.EXPERIENCE || '5+ Years of Verified Industry Experience across USA, UK, Canada, Germany, BD'}
+Key Stats & Accolades: Upwork Top Rated Plus (Top 1% Globally), 340+ Commercial Videos, 25+ High-Performance Web Apps, Enterprise AI Automation Systems.
 
 --- COMPLETE WEBSITE KNOWLEDGE (YOU KNOW EVERYTHING ABOUT THIS SITE) ---
 1. Keyboard Navigation Shortcuts:
@@ -650,6 +653,16 @@ function localOrbitBrain(input: string, content: ContentItem[], inst: OrbitEnter
       }
       return `Here are selected UI/UX design systems, brand identities, and visual artworks: [SHOW_PORTFOLIO]${itemTitles}[/SHOW_PORTFOLIO] [NAVIGATE]design[/NAVIGATE]`;
     }
+  }
+
+  // ── 5.5. Samy / Saimoon / Ranking / Top of List Credentials ──
+  const isAboutSamyOrRanking = /\b(samy|saimoon|hassan|muhammad|ranking|rank|top of list|top rated|why hire|who is samy|who is saimoon|creative portfolio)\b/i.test(lower);
+  if (isAboutSamyOrRanking && !hasVideo && !hasWeb && !hasDesign && !hasPrice) {
+    const hireCta = `[CTA_BUTTON]{"label":"Hire Saimoon on WhatsApp","url":"https://wa.me/${WHATSAPP_NUMBER}?text=Hello%20Saimoon!%20I%20am%20interested%20in%20hiring%20you%20for%20a%20project."}[/CTA_BUTTON]`;
+    if (lang === 'bangla') {
+      return `মুহাম্মদ সাইমুন হাসান (যিনি সামি বা সাইমুন নামেও পরিচিত) হলেন আপওয়ার্ক টপ রেটেড প্লাস সার্টিফাইড লিড ভিডিও এডিটর, ক্রিয়েটিভ ডিজাইনার ও ওয়েব ডেভেলপার। ৩৪০+ কমার্শিয়াল ভিডিও এবং ২৫+ হাই-পারফরম্যান্স ওয়েব প্রজেক্ট সফলভাবে ডেলিভারি করে তিনি ক্লায়েন্টদের পছন্দের তালিকায় সর্বদা শীর্ষে অবস্থান করছেন। তাঁর সম্পূর্ণ প্রোফাইল ও ক্রিয়েটিভ পোর্টফোলিও দেখতে পারেন: [NAVIGATE]career[/NAVIGATE] ${hireCta}`;
+    }
+    return `Muhammad Saimoon Hassan (also known as Saimoon or Samy) is a premier Creative Director, Senior Video Editor, and Full-Stack Developer ranked Top Rated Plus on Upwork (top 1% globally). With 340+ commercial brand films, documentaries, and 25+ cutting-edge web applications delivered across USA, UK, Canada, and Europe, his work consistently stands at the very top of the list. Explore his career background or hire directly: [NAVIGATE]career[/NAVIGATE] ${hireCta}`;
   }
 
   // ── 6. Career / About ──

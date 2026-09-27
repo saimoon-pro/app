@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { FileText, Eye, Download, X, ChevronDown } from 'lucide-react';
+import { FileText, Eye, Download, X, ChevronDown, Sparkles } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { CreateCVButton } from '@/components/cv-maker/CreateCVButton';
 
 const RESUME_PATH = `${import.meta.env.BASE_URL}Muhammad saimoon hassan.pdf`;
 
@@ -11,8 +13,7 @@ export default function ResumeButton() {
 
   const isViewing = useStore((s) => s.resumeModalOpen);
   const setIsViewing = useStore((s) => s.setResumeModalOpen);
-  const timeOfDay = useStore((s) => s.timeOfDay);
-  const isDay = timeOfDay >= 7.5 && timeOfDay <= 17.5;
+  const isDay = useStore((s) => s.timeOfDay >= 7.5 && s.timeOfDay <= 17.5);
 
   // Close menu on outside click
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function ResumeButton() {
       {/* ─── Top-Right Floating Resume Header CTA ─── */}
       <div
         ref={menuRef}
-        className="fixed top-2.5 right-3 sm:top-3 sm:right-4 lg:top-3.5 lg:right-8 xl:right-12 z-40 resume-cta-container select-none"
+        className="fixed top-2.5 right-3 sm:top-3 sm:right-4 lg:top-3.5 lg:right-8 xl:right-12 z-40 resume-cta-container select-none flex items-center gap-2 sm:gap-3"
       >
         {/* Dropdown Menu (appears below the button) */}
         <div
@@ -206,8 +207,95 @@ export default function ResumeButton() {
                 </div>
               </div>
             </button>
+            {/* Divider */}
+            <div
+              style={{
+                height: 1,
+                background: isDay ? 'rgba(0, 102, 255, 0.15)' : 'rgba(0, 200, 83, 0.15)',
+                margin: '3px 8px',
+              }}
+            />
+
+            {/* Create Your CV Option */}
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                const authState = useAuthStore.getState();
+                if (authState.user) {
+                  authState.setWorkspaceOpen(true);
+                } else {
+                  authState.openAuthModal('signup');
+                }
+              }}
+              className="resume-menu-item"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                width: '100%',
+                padding: '9px 12px',
+                borderRadius: 10,
+                border: 'none',
+                background: isDay ? 'rgba(0, 102, 255, 0.1)' : 'rgba(0, 200, 83, 0.1)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                color: '#FFFFFF',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = isDay ? 'rgba(0, 102, 255, 0.24)' : 'rgba(0, 200, 83, 0.24)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = isDay ? 'rgba(0, 102, 255, 0.1)' : 'rgba(0, 200, 83, 0.1)';
+              }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: isDay ? 'rgba(0, 102, 255, 0.25)' : 'rgba(0, 200, 83, 0.25)',
+                  border: isDay ? '1px solid rgba(0, 102, 255, 0.6)' : '1px solid rgba(0, 255, 102, 0.5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: isDay ? '0 0 12px rgba(0, 102, 255, 0.4)' : '0 0 12px rgba(0, 200, 83, 0.4)',
+                }}
+              >
+                <Sparkles size={15} style={{ color: isDay ? '#00E5FF' : '#00FF66' }} />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div
+                  className="font-display flex items-center gap-1.5"
+                  style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.3, color: isDay ? '#60A5FA' : '#4ADE80' }}
+                >
+                  <span>Create Your CV</span>
+                  <span
+                    style={{
+                      fontSize: 8,
+                      padding: '1px 4px',
+                      borderRadius: 4,
+                      background: isDay ? '#0066FF' : '#00C853',
+                      color: '#FFFFFF',
+                      fontWeight: 800,
+                    }}
+                  >
+                    AI
+                  </span>
+                </div>
+                <div
+                  className="font-mono"
+                  style={{ fontSize: 9, color: isDay ? '#93C5FD' : '#8BAAA0', letterSpacing: '0.04em', marginTop: 1 }}
+                >
+                  Free 100 Credits
+                </div>
+              </div>
+            </button>
           </div>
         </div>
+
+        {/* ─── Create CV Header Button (Visible on md+ screens) ─── */}
+        <CreateCVButton variant="header" className="hidden md:flex" />
 
         {/* ─── Main High-Visibility Glowing Resume Pill ─── */}
         <button

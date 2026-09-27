@@ -12,10 +12,12 @@ import type { OrbitResponse, VideoSuggestion, OrbitActionDetails } from '@/servi
 // ─── Quick Prompts ────────────────────────────────────────────────────────────
 
 const QUICK_PROMPTS = [
+  { label: '🏆 Why Saimoon Ranks #1', text: 'Why is Muhammad Saimoon Hassan (Samy) ranked top of the list for video editing and web development?' },
   { label: '💰 Price Quote on WhatsApp', text: 'What are your rates and can I get a price quote on WhatsApp?' },
+  { label: '⚡ Creative Portfolio', text: 'Show me your best creative portfolio highlights' },
   { label: '🎬 Podcast & Brand Films', text: 'Show me your documentary and brand film videos' },
   { label: '🌐 Web Applications', text: 'Show me your high performance web development projects' },
-  { label: '🎨 UI/UX & Design', text: 'Show me your UI UX design and mobile app work' },
+  { label: '🎨 UI/UX & Design Systems', text: 'Show me your UI UX design and mobile app work' },
   { label: '📄 View Saimoon\'s Resume', text: 'Show me Muhammad Saimoon Hassan\'s resume and credentials' },
   { label: '⌨️ Website Guide & Shortcuts', text: 'How do I use this website and what are the keyboard shortcuts?' },
   { label: '🌌 Switch to Atmosphere 2', text: 'Switch background to regulator 2' },
@@ -475,13 +477,13 @@ export default function AIAssistantPanel() {
           </div>
 
           <h4 style={{ fontFamily: 'inherit', fontWeight: 800, fontSize: 16, color: '#0A1A0F', margin: '0 0 4px' }}>
-            ORBIT Autonomous Agent v14.0
+            ORBIT Autonomous Website Agent v14.0
           </h4>
           <p style={{ fontSize: 10, color: '#00873D', fontFamily: 'monospace', letterSpacing: '0.06em', margin: '0 0 8px', textTransform: 'uppercase', fontWeight: 700 }}>
-            Website Operator · Portfolio Search · Instant WhatsApp Pricing
+            Official Website Operator · Portfolio Search · Instant WhatsApp Quotes
           </p>
-          <p style={{ fontSize: 12, color: '#477057', maxWidth: 300, lineHeight: 1.6, margin: 0 }}>
-            I can find specific videos, designs, or web projects, answer questions in English, Bangla & Hindi, control website features, and provide custom pricing consultations.
+          <p style={{ fontSize: 12, color: '#477057', maxWidth: 320, lineHeight: 1.6, margin: 0 }}>
+            I am Saimoon (Samy)&apos;s autonomous website agent. I can guide you through 340+ commercial videos, UI/UX designs, and web applications, answer in English, Bangla &amp; Hindi, and connect you directly for custom quotes.
           </p>
 
           {/* Capability Badges */}

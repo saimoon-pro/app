@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://saimoonhassan.com/saimoon/</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://saimoonhassan.com/saimoon/images/profile-photo.png</image:loc>
+      <image:title>Muhammad Saimoon Hassan (Saimoon / Samy) Creative Portfolio</image:title>
+      <image:caption>Professional Video Editor, UI/UX Designer &amp; Full Stack Web Developer</image:caption>
+    </image:image>
+    <video:video>
+      <video:thumbnail_loc>https://saimoonhassan.com/saimoon/images/thumb-video-1.jpg</video:thumbnail_loc>
+      <video:title>Luminex Commercial Brand Film by Saimoon Hassan</video:title>
+      <video:description>Cinematic brand film showcasing smart lighting by Muhammad Saimoon Hassan.</video:description>
+      <video:player_loc>https://www.youtube.com/embed/dQw4w9WgXcQ</video:player_loc>
+      <video:duration>180</video:duration>
+      <video:publication_date>2024-01-15</video:publication_date>
+      <video:family_friendly>yes</video:family_friendly>
+    </video:video>
+  </url>
+  <url>
+    <loc>https://saimoonhassan.com/</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>

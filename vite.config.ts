@@ -46,4 +46,16 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-animation': ['gsap', 'framer-motion'],
+          'vendor-icons': ['lucide-react'],
+          'vendor-data': ['papaparse', 'zustand'],
+        },
+      },
+    },
+  },
 });

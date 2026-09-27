@@ -17,6 +17,11 @@ import CelestialLightingEngine from '@/components/core/CelestialLightingEngine';
 import CelestialSlider from '@/components/core/CelestialSlider';
 import LiquidRoleBadge from '@/components/core/LiquidRoleBadge';
 import gsap from 'gsap';
+import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
+import { CreateCVButton } from '@/components/cv-maker/CreateCVButton';
+import { AuthModal } from '@/components/cv-maker/AuthModal';
+import { LegalModal } from '@/components/cv-maker/LegalModal';
+import { CVMakerWorkspace } from '@/components/cv-maker/CVMakerWorkspace';
 
 const ROLES = [
   'Video Editor',
@@ -72,10 +77,10 @@ export default function App() {
   const setCursorHover = useStore((s) => s.setCursorHover);
   const reducedMotion = useStore((s) => s.reducedMotion);
   const setResumeModalOpen = useStore((s) => s.setResumeModalOpen);
-  const timeOfDay = useStore((s) => s.timeOfDay);
-  const isDay = timeOfDay >= 7.5 && timeOfDay <= 17.5;
+  const isDay = useStore((s) => s.timeOfDay >= 7.5 && s.timeOfDay <= 17.5);
   const { playClick, playPanelOpen } = useSound();
   useReducedMotion();
+  useFirebaseAuth();
 
   // Load content from CMS and poll for live updates
   useEffect(() => {
@@ -366,24 +371,28 @@ export default function App() {
           </p>
 
           {/* Mobile Quick Action CTAs - Native App Dual Buttons */}
-          <div className="flex items-center gap-3 mt-3 w-full max-w-xs justify-center flex-shrink-0">
-            <a
-              href="https://wa.me/8801778011899"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl ${isDay ? 'whatsapp-tactile-btn-blue' : 'whatsapp-tactile-btn'} font-mono text-xs sm:text-sm uppercase tracking-wider font-black cursor-pointer select-none min-h-[44px]`}
-            >
-              <MessageCircle size={17} strokeWidth={2.5} className="text-white" />
-              <span>WHATSAPP</span>
-            </a>
+          <div className="flex flex-col items-center gap-2 mt-3 w-full max-w-xs justify-center flex-shrink-0">
+            <div className="flex items-center gap-2.5 w-full">
+              <a
+                href="https://wa.me/8801778011899"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl ${isDay ? 'whatsapp-tactile-btn-blue' : 'whatsapp-tactile-btn'} font-mono text-xs sm:text-sm uppercase tracking-wider font-black cursor-pointer select-none min-h-[44px]`}
+              >
+                <MessageCircle size={17} strokeWidth={2.5} className="text-white" />
+                <span>WHATSAPP</span>
+              </a>
 
-            <button
-              onClick={() => setResumeModalOpen(true)}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl resume-tactile-white-btn font-mono text-xs sm:text-sm uppercase tracking-wider font-bold cursor-pointer select-none min-h-[44px]"
-            >
-              <FileText size={17} strokeWidth={2.2} className={isDay ? "text-[#0066FF]" : "text-[#00C853]"} />
-              <span>RESUME / CV</span>
-            </button>
+              <button
+                onClick={() => setResumeModalOpen(true)}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl resume-tactile-white-btn font-mono text-xs sm:text-sm uppercase tracking-wider font-bold cursor-pointer select-none min-h-[44px]"
+              >
+                <FileText size={17} strokeWidth={2.2} className={isDay ? "text-[#0066FF]" : "text-[#00C853]"} />
+                <span>RESUME / CV</span>
+              </button>
+            </div>
+
+            <CreateCVButton variant="hero" className="w-full" />
           </div>
 
           {/* Scroll down indicator for mobile - App Style Pill */}
@@ -597,6 +606,8 @@ export default function App() {
                   />
                   <span>VIEW RESUME / CV</span>
                 </button>
+
+                <CreateCVButton variant="hero" />
               </div>
             </div>
 
@@ -632,6 +643,11 @@ export default function App() {
 
       <ContentPanel />
       <CustomCursor />
+
+      {/* ── CV MAKER MODALS & WORKSPACE ── */}
+      <AuthModal />
+      <LegalModal />
+      <CVMakerWorkspace />
 
       {/* ═══════════ HIDDEN SEO SEMANTIC CONTENT ═══════════ */}
       <div

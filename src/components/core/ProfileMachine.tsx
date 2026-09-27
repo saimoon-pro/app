@@ -79,13 +79,14 @@ export default function ProfileMachine() {
         {[0, 0.8, 1.6, 2.4, 3.2].map((delay, i) => (
           <div
             key={i}
-            className="absolute rounded-full"
+            className="absolute rounded-full will-change-transform"
             style={{
               width: imageSize,
               height: imageSize,
               border: '1.5px solid rgba(0, 229, 255, 0.35)',
               animation: reducedMotion ? 'none' : `radio-wave 4s ease-out ${delay}s infinite`,
               opacity: reducedMotion ? 0.1 : undefined,
+              transform: 'translateZ(0)',
             }}
           />
         ))}
@@ -93,10 +94,11 @@ export default function ProfileMachine() {
 
       {/* Outer Ring with Tick Marks */}
       <div
-        className="absolute inset-0 rounded-full pointer-events-none"
+        className="absolute inset-0 rounded-full pointer-events-none will-change-transform"
         style={{
           border: '1px dashed rgba(0, 200, 83, 0.3)',
           animation: reducedMotion ? 'none' : 'machine-rotate 30s linear infinite',
+          transform: 'translateZ(0)',
         }}
       >
         {/* Tick marks via conic gradient mask */}
@@ -112,13 +114,14 @@ export default function ProfileMachine() {
 
       {/* Middle Counter-Rotating Cyan Accent Ring */}
       <div
-        className="absolute rounded-full pointer-events-none"
+        className="absolute rounded-full pointer-events-none will-change-transform"
         style={{
           inset: cyanRingInset,
           border: '2px solid transparent',
           borderTopColor: 'rgba(0, 229, 255, 0.5)',
           borderBottomColor: 'rgba(0, 229, 255, 0.2)',
           animation: reducedMotion ? 'none' : 'machine-rotate-reverse 15s linear infinite',
+          transform: 'translateZ(0)',
         }}
       />
 
@@ -134,12 +137,13 @@ export default function ProfileMachine() {
 
       {/* Enlarged Prominent Profile Image Wrapper */}
       <div
-        className="absolute rounded-full overflow-hidden transition-all duration-300"
+        className="absolute rounded-full overflow-hidden transition-all duration-300 will-change-transform"
         style={{
           inset: imageInset,
           border: '2.5px solid rgba(0, 230, 118, 0.7)',
           boxShadow: '0 0 35px rgba(0, 200, 83, 0.4), 0 0 70px rgba(0, 200, 83, 0.2), inset 0 0 25px rgba(0, 0, 0, 0.3)',
           animation: reducedMotion ? 'none' : 'profile-breathe 4s ease-in-out infinite',
+          transform: 'translateZ(0)',
         }}
       >
         <img

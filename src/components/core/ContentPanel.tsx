@@ -1,22 +1,38 @@
-import { useEffect, useRef } from 'react';
-import { X, ArrowLeft } from 'lucide-react';
+import { useEffect, useRef, lazy, Suspense } from 'react';
+import { X, ArrowLeft, Loader2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useSound } from '@/hooks/useSound';
 import gsap from 'gsap';
-import CareerPanel from '@/components/panels/CareerPanel';
-import VideoPanel from '@/components/panels/VideoPanel';
-import DesignPanel from '@/components/panels/DesignPanel';
-import WebPanel from '@/components/panels/WebPanel';
-import AIAssistantPanel from '@/components/panels/AIAssistantPanel';
-import ContactPanel from '@/components/panels/ContactPanel';
 import type { OrbitNodeId } from '@/types/content';
+
+// Asynchronous Lazy-loaded Panels for Ultra-Fast Initial Site Load
+const CareerPanel = lazy(() => import('@/components/panels/CareerPanel'));
+const VideoPanel = lazy(() => import('@/components/panels/VideoPanel'));
+const DesignPanel = lazy(() => import('@/components/panels/DesignPanel'));
+const WebPanel = lazy(() => import('@/components/panels/WebPanel'));
+const AIAssistantPanel = lazy(() => import('@/components/panels/AIAssistantPanel'));
+const ContactPanel = lazy(() => import('@/components/panels/ContactPanel'));
+
+function PanelLoadingFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[300px] w-full gap-4 text-emerald-600/80">
+      <div className="relative flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full border-2 border-[#00C853]/20 border-t-[#00C853] animate-spin" />
+        <Loader2 className="w-6 h-6 text-[#00C853] animate-pulse absolute" />
+      </div>
+      <span className="font-mono text-xs uppercase tracking-widest text-[#0A1A0F]/60">
+        Loading Section Matrix...
+      </span>
+    </div>
+  );
+}
 
 const panelTitles: Record<OrbitNodeId, string> = {
   career: 'My Career',
   video: 'Video Editing Universe',
   design: 'Graphical Works',
   web: 'Website Projects',
-  ai: 'ORBIT — AI Assistant',
+  ai: 'ORBIT — Website Agent',
   contact: 'Get in Touch',
 };
 
@@ -188,7 +204,9 @@ export default function ContentPanel() {
           className="flex-1 overflow-y-auto panel-scroll"
           style={{ padding: 'clamp(16px, 4vw, 40px) clamp(12px, 3vw, 32px)' }}
         >
-          {renderPanel()}
+          <Suspense fallback={<PanelLoadingFallback />}>
+            {renderPanel()}
+          </Suspense>
         </div>
       </div>
     </>

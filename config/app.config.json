@@ -1,0 +1,38 @@
+{
+  "credits": {
+    "FREE_SIGNUP_CREDITS": 100,
+    "COST_UPLOAD": 0,
+    "COST_DETECT": 0,
+    "COST_GENERATE_PREBUILT": 50,
+    "COST_EDIT": 50,
+    "COST_GENERATE_CUSTOM": 100
+  },
+  "payments": {
+    "MIN_PURCHASE_BDT": 50,
+    "CREDITS_PER_BDT": 10,
+    "bkashNumber": "01778011899",
+    "bkashType": "Personal",
+    "nagadNumber": "01778011899",
+    "nagadType": "Personal",
+    "rocketNumber": "01778011899",
+    "rocketType": "Personal",
+    "bankName": "Dutch-Bangla Bank PLC (DBBL)",
+    "bankAccountName": "MUHAMMAD SAIMOON HASSAN",
+    "bankAccountNumber": "123.456.7890123",
+    "bankBranch": "Dhanmondi Branch, Dhaka",
+    "bankRoutingNumber": "090271234"
+  },
+  "limits": {
+    "MAX_PAST_CV_MB": 2,
+    "MAX_PHOTO_MB": 1,
+    "MAX_GENERATED_CV_MB": 2,
+    "CHAT_MAX_IMAGES": 2,
+    "CHAT_MAX_IMAGES_SMALL": 3,
+    "CHAT_IMAGE_MAX_MB": 2,
+    "CHAT_MAX_PROMPT_WORDS": 1000
+  },
+  "features": {
+    "REQUIRE_PHONE_OTP": false,
+    "CANVA_ENABLED": false
+  }
+}

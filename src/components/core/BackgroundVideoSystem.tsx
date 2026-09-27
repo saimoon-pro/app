@@ -12,8 +12,28 @@ const REGULATOR_VIDEOS: Record<number, string> = {
   6: assetUrl('backgrounds/Regulator 6_opt.mp4'),
 };
 
+const REGULATOR_REV_VIDEOS: Record<number, string> = {
+  1: assetUrl('backgrounds/Regulator 1_rev.mp4'),
+  2: assetUrl('backgrounds/Regulator 2_rev.mp4'),
+  3: assetUrl('backgrounds/Regulator 3_rev.mp4'),
+  4: assetUrl('backgrounds/Regulator 4_rev.mp4'),
+  5: assetUrl('backgrounds/Regulator 5_rev.mp4'),
+  6: assetUrl('backgrounds/Regulator 6_rev.mp4'),
+};
+
+const REGULATOR_DURATIONS: Record<number, number> = {
+  1: 10,
+  2: 10,
+  3: 20.02,
+  4: 20.053367,
+  5: 15,
+  6: 10,
+};
+
 const INTRO_VIDEO = assetUrl('backgrounds/Intro.mp4');
 const CONTACT_VIDEO = assetUrl('backgrounds/Contact Screen_opt.mp4');
+const CONTACT_REV_VIDEO = assetUrl('backgrounds/Contact Screen_rev.mp4');
+const CONTACT_DURATION = 15.04;
 
 export default function BackgroundVideoSystem() {
   const introCompleted = useStore((s) => s.introCompleted);
@@ -38,20 +58,26 @@ export default function BackgroundVideoSystem() {
 
   const welcomeVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Intro video audio states
-  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  // Intro video audio states - default to muted for seamless zero-error autoplay
+  const [isAudioMuted, setIsAudioMuted] = useState(true);
 
-  // Dual-Layer Constant-Luminance Dissolve System
+  // Dual-Layer Constant-Luminance Dissolve System (Each layer has Forward + Reverse paired videos)
   const [activeLayer, setActiveLayer] = useState<'A' | 'B'>('A');
   const [layerAVideo, setLayerAVideo] = useState<string>(REGULATOR_VIDEOS[currentRegulator] || REGULATOR_VIDEOS[1]);
+  const [layerARevVideo, setLayerARevVideo] = useState<string>(REGULATOR_REV_VIDEOS[currentRegulator] || REGULATOR_REV_VIDEOS[1]);
   const [layerBVideo, setLayerBVideo] = useState<string | null>(null);
+  const [layerBRevVideo, setLayerBRevVideo] = useState<string | null>(null);
   const [opacityA, setOpacityA] = useState<number>(0.95);
   const [opacityB, setOpacityB] = useState<number>(0);
   const [zIndexA, setZIndexA] = useState<number>(2);
   const [zIndexB, setZIndexB] = useState<number>(1);
 
-  const videoARef = useRef<HTMLVideoElement>(null);
-  const videoBRef = useRef<HTMLVideoElement>(null);
+  // References to Forward and Reverse video elements for Layer A and Layer B
+  const videoA_FwdRef = useRef<HTMLVideoElement>(null);
+  const videoA_RevRef = useRef<HTMLVideoElement>(null);
+  const videoB_FwdRef = useRef<HTMLVideoElement>(null);
+  const videoB_RevRef = useRef<HTMLVideoElement>(null);
+
   const currentVideoSrcRef = useRef<string>(REGULATOR_VIDEOS[currentRegulator] || REGULATOR_VIDEOS[1]);
   const transitionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -64,30 +90,35 @@ export default function BackgroundVideoSystem() {
     };
   }, []);
 
-  // Velocity Physics (100% Ref-based, Zero React re-renders during scroll)
-  const forwardVelocityRef = useRef(0);
-  const reverseVelocityRef = useRef(0);
-  const isReversingRef = useRef(false);
-  const lastFrameTimeRef = useRef(performance.now());
+  // Direction & Velocity Physics (100% Ref-based, Zero React re-renders during scroll)
+  const currentDirectionRef = useRef<'forward' | 'reverse'>('forward');
+  const forwardVelocityRef = useRef<number>(0);
+  const reverseVelocityRef = useRef<number>(0);
+  const lastFrameTimeRef = useRef<number>(performance.now());
 
-  // Determine active target video source
+  // Determine active target video sources
   const isContactMode = activeNode === 'contact';
   const targetVideo = isContactMode
     ? CONTACT_VIDEO
     : REGULATOR_VIDEOS[currentRegulator] || REGULATOR_VIDEOS[1];
+  const targetRevVideo = isContactMode
+    ? CONTACT_REV_VIDEO
+    : REGULATOR_REV_VIDEOS[currentRegulator] || REGULATOR_REV_VIDEOS[1];
+  const targetDuration = isContactMode
+    ? CONTACT_DURATION
+    : REGULATOR_DURATIONS[currentRegulator] || 10;
 
   const soundEnabled = useStore((s) => s.soundEnabled);
 
-  // Sync intro video audio with global soundEnabled
+  // Sync intro video audio with global soundEnabled if already interacted
   useEffect(() => {
     const vid = welcomeVideoRef.current;
-    if (vid) {
+    if (vid && !isAudioMuted) {
       vid.muted = !soundEnabled;
-      setIsAudioMuted(!soundEnabled);
     }
-  }, [soundEnabled]);
+  }, [soundEnabled, isAudioMuted]);
 
-  // Auto-play intro video with audio ON by default, handling browser autoplay policies
+  // Auto-play intro video safely on mount, complying with browser autoplay policies
   useEffect(() => {
     if (introState !== 'welcome') return;
     const vid = welcomeVideoRef.current;
@@ -95,36 +126,21 @@ export default function BackgroundVideoSystem() {
 
     vid.currentTime = 0;
     vid.volume = 1.0;
-    vid.muted = !soundEnabled;
+    vid.muted = true;
 
-    const playPromise = vid.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setIsAudioMuted(!soundEnabled);
-        })
-        .catch((err) => {
-          // Autoplay policy prevented unmuted audio playback without user gesture
-          console.warn('Browser autoplay required user gesture for unmuted audio. Starting muted preview until interaction:', err);
-          vid.muted = true;
-          vid.currentTime = 0;
-          vid.play().catch(() => {});
-          setIsAudioMuted(true);
-        });
-    }
+    // Start muted preview immediately without browser restrictions
+    vid.play().catch(() => {});
 
-    // Touch/click/key/scroll/pointerdown anywhere immediately starts full audio from 0:00
+    // Touch/click/key/pointerdown anywhere immediately starts full audio from 0:00
     const unlockSound = () => {
       const v = welcomeVideoRef.current;
       if (v && introState === 'welcome') {
-        if (v.muted || isAudioMuted) {
-          v.currentTime = 0; // Rewind so audio and video play in 100% sync from the start
-          v.muted = false;
-          v.volume = 1.0;
-          v.play().catch(() => {});
-          setIsAudioMuted(false);
-          useStore.getState().setSoundEnabled(true);
-        }
+        v.currentTime = 0; // Rewind so audio and video play in 100% sync from the start
+        v.muted = false;
+        v.volume = 1.0;
+        v.play().catch(() => {});
+        setIsAudioMuted(false);
+        useStore.getState().setSoundEnabled(true);
       }
     };
 
@@ -132,16 +148,14 @@ export default function BackgroundVideoSystem() {
     window.addEventListener('click', unlockSound, { once: true });
     window.addEventListener('touchstart', unlockSound, { once: true });
     window.addEventListener('keydown', unlockSound, { once: true });
-    window.addEventListener('wheel', unlockSound, { once: true });
 
     return () => {
       window.removeEventListener('pointerdown', unlockSound);
       window.removeEventListener('click', unlockSound);
       window.removeEventListener('touchstart', unlockSound);
       window.removeEventListener('keydown', unlockSound);
-      window.removeEventListener('wheel', unlockSound);
     };
-  }, [introState, soundEnabled, isAudioMuted]);
+  }, [introState]);
 
   const toggleIntroSound = useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -181,8 +195,8 @@ export default function BackgroundVideoSystem() {
     setIntroState((prev) => {
       if (prev !== 'welcome') return prev;
       // Start Regulator 1 playback smoothly in the background
-      if (videoARef.current) {
-        videoARef.current.play().catch(() => {});
+      if (videoA_FwdRef.current) {
+        videoA_FwdRef.current.play().catch(() => {});
       }
 
       // Smooth audio fadeout over 800ms
@@ -247,43 +261,152 @@ export default function BackgroundVideoSystem() {
     triggerIntroDissolve();
   }, [triggerIntroDissolve]);
 
-  // Mouse wheel listener: 2.5x sensitivity scaling for bidirectional speedup
+  // Synchronize playback seamlessly between forward & reverse videos
+  const syncToReverse = useCallback(() => {
+    const pairs = [
+      { fwd: videoA_FwdRef.current, rev: videoA_RevRef.current },
+      { fwd: videoB_FwdRef.current, rev: videoB_RevRef.current },
+    ];
+
+    pairs.forEach(({ fwd, rev }) => {
+      if (!fwd || !rev) return;
+      const dur = fwd.duration || targetDuration;
+      const fwdTime = fwd.currentTime;
+      // Exact reverse time: (dur - fwdTime) % dur
+      const revTime = Math.max(0, Math.min(dur, (dur - (fwdTime % dur)) % dur));
+      rev.currentTime = revTime;
+
+      // Instant frame-accurate swap
+      const targetRevRate = Math.min(2.5, 1.0 + reverseVelocityRef.current * 1.0);
+      rev.playbackRate = targetRevRate;
+      fwd.style.opacity = '0';
+      rev.style.opacity = '1';
+      fwd.pause();
+      rev.play().catch(() => {});
+    });
+  }, [targetDuration]);
+
+  const syncToForward = useCallback(() => {
+    const pairs = [
+      { fwd: videoA_FwdRef.current, rev: videoA_RevRef.current },
+      { fwd: videoB_FwdRef.current, rev: videoB_RevRef.current },
+    ];
+
+    pairs.forEach(({ fwd, rev }) => {
+      if (!fwd || !rev) return;
+      const dur = rev.duration || targetDuration;
+      const revTime = rev.currentTime;
+      // Exact forward time: (dur - revTime) % dur
+      const fwdTime = Math.max(0, Math.min(dur, (dur - (revTime % dur)) % dur));
+      fwd.currentTime = fwdTime;
+
+      // Instant frame-accurate swap
+      const targetFwdRate = Math.min(2.5, 1.0 + forwardVelocityRef.current * 1.0);
+      fwd.playbackRate = targetFwdRate;
+      rev.style.opacity = '0';
+      fwd.style.opacity = '1';
+      rev.pause();
+      fwd.play().catch(() => {});
+    });
+  }, [targetDuration]);
+
+  // Scroll & Mouse Wheel / Touch Physics Listener
+  // Sensitivity directly scales playback speed up to 2.5x
   useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target) {
-        // If scrolling inside an active scrollable container, don't interrupt its internal scrolling
+    const WHEEL_SENSITIVITY = 0.007;
+
+    const applyScrollDelta = (deltaY: number, target: HTMLElement | null) => {
+      if (introState !== 'completed' && introState !== 'dissolving') return;
+      if (!deltaY) return;
+
+      // Check if user is scrolling inside an internal scrollable panel
+      if (target && typeof target.closest === 'function') {
         const scrollable = target.closest('.overflow-y-auto, .overflow-y-scroll, .overflow-x-auto');
         if (scrollable) {
           const { scrollTop, scrollHeight, clientHeight } = scrollable;
-          const canDown = e.deltaY > 0 && scrollTop + clientHeight < scrollHeight - 2;
-          const canUp = e.deltaY < 0 && scrollTop > 2;
+          const canDown = deltaY > 0 && scrollTop + clientHeight < scrollHeight - 2;
+          const canUp = deltaY < 0 && scrollTop > 2;
           if (canDown || canUp) {
             return;
           }
         }
       }
 
-      // Fast responsiveness multiplier
-      const delta = e.deltaY;
-      const sensitivity = 0.025;
+      const absDelta = Math.abs(deltaY);
+      // Impulse directly proportional to mouse wheel / touch scroll sensitivity
+      const impulse = Math.min(absDelta * WHEEL_SENSITIVITY, 1.5);
 
-      if (delta > 0) {
-        // Scroll Down -> Forward acceleration from EXACT position
-        forwardVelocityRef.current = Math.min(forwardVelocityRef.current + delta * sensitivity, 5.0);
-        reverseVelocityRef.current = 0; // Instantly switch to forward
-      } else if (delta < 0) {
-        // Scroll Up -> Instant Reverse speedup from EXACT position
-        reverseVelocityRef.current = Math.min(reverseVelocityRef.current + Math.abs(delta) * sensitivity, 5.0);
-        forwardVelocityRef.current = 0; // Instantly switch to reverse
+      if (deltaY < 0) {
+        // ── SCROLL UP -> REVERSE PLAYBACK & SPEED UP TO 2.5X ──
+        reverseVelocityRef.current = Math.min(reverseVelocityRef.current + impulse, 1.5);
+        forwardVelocityRef.current = 0;
+
+        if (currentDirectionRef.current !== 'reverse') {
+          currentDirectionRef.current = 'reverse';
+          syncToReverse();
+        } else {
+          const targetRevRate = Math.min(2.5, 1.0 + reverseVelocityRef.current * 1.0);
+          const pairs = [
+            { rev: videoA_RevRef.current },
+            { rev: videoB_RevRef.current },
+          ];
+          pairs.forEach(({ rev }) => {
+            if (rev && rev.readyState >= 2) rev.playbackRate = targetRevRate;
+          });
+        }
+      } else {
+        // ── SCROLL DOWN -> FORWARD PLAYBACK & SPEED UP TO 2.5X ──
+        forwardVelocityRef.current = Math.min(forwardVelocityRef.current + impulse, 1.5);
+        reverseVelocityRef.current = 0;
+
+        if (currentDirectionRef.current !== 'forward') {
+          currentDirectionRef.current = 'forward';
+          syncToForward();
+        } else {
+          const targetFwdRate = Math.min(2.5, 1.0 + forwardVelocityRef.current * 1.0);
+          const pairs = [
+            { fwd: videoA_FwdRef.current },
+            { fwd: videoB_FwdRef.current },
+          ];
+          pairs.forEach(({ fwd }) => {
+            if (fwd && fwd.readyState >= 2) fwd.playbackRate = targetFwdRate;
+          });
+        }
+      }
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      applyScrollDelta(e.deltaY, e.target as HTMLElement | null);
+    };
+
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        touchStartY = e.touches[0].clientY;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        const currentY = e.touches[0].clientY;
+        const deltaY = (touchStartY - currentY) * 2.0;
+        touchStartY = currentY;
+        applyScrollDelta(deltaY, e.target as HTMLElement | null);
       }
     };
 
     window.addEventListener('wheel', handleWheel, { passive: true });
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, []);
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
-  // Continuous physics loop for 100% seamless, continuous forward & reverse playback across all layers
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [introState, syncToReverse, syncToForward]);
+
+  // Continuous physics animation loop for hardware-accelerated forward & reverse playback
   useEffect(() => {
     let animId: number;
 
@@ -303,65 +426,58 @@ export default function BackgroundVideoSystem() {
           }
         }
       } else if (introState === 'completed' || introState === 'dissolving') {
-        const videos = [videoARef.current, videoBRef.current].filter(Boolean) as HTMLVideoElement[];
+        const pairs = [
+          { fwd: videoA_FwdRef.current, rev: videoA_RevRef.current },
+          { fwd: videoB_FwdRef.current, rev: videoB_RevRef.current },
+        ];
 
-        // ── 1. ULTRA-FAST INTRA-FRAME REVERSE SCRUBBING (Scroll Up) ──
-        if (reverseVelocityRef.current > 0.04) {
-          isReversingRef.current = true;
-          const reverseSpeed = 2.5 + reverseVelocityRef.current * 0.4;
+        if (currentDirectionRef.current === 'reverse') {
+          // ── 1. HARDWARE-ACCELERATED REVERSE SPEEDUP (Scroll Up) ──
+          // Speed scales smoothly from 1.0x to 2.5x based on scrolling velocity/sensitivity
+          const targetRevRate = Math.min(2.5, 1.0 + reverseVelocityRef.current * 1.0);
 
-          videos.forEach((video) => {
-            if (video.readyState >= 2) {
-              if (!video.paused) {
-                video.pause();
-              }
-              const dur = video.duration || 10;
-              let nextTime = video.currentTime - reverseSpeed * dt;
-
-              if (nextTime < 0) {
-                nextTime = dur + (nextTime % dur);
-              } else if (nextTime > dur) {
-                nextTime = nextTime % dur;
-              }
-
-              video.currentTime = nextTime;
+          pairs.forEach(({ rev }) => {
+            if (rev && rev.readyState >= 2) {
+              if (rev.paused) rev.play().catch(() => {});
+              rev.playbackRate = targetRevRate;
             }
           });
 
-          reverseVelocityRef.current *= Math.pow(0.18, dt);
-        }
-        // ── 2. SEAMLESS FORWARD SPEEDUP (Scroll Down) ──
-        else if (forwardVelocityRef.current > 0.04) {
-          const targetForwardRate = Math.min(2.5 + forwardVelocityRef.current * 0.4, 4.5);
+          // Exponential friction decay (smooth ~1.1s tactile glide after scroll stops)
+          reverseVelocityRef.current *= Math.pow(0.04, dt);
 
-          videos.forEach((video) => {
-            if (video.readyState >= 2) {
-              if (isReversingRef.current || video.paused) {
-                video.play().catch(() => {});
+          // Once reverse momentum finishes, seamlessly return to forward at exact point!
+          if (reverseVelocityRef.current < 0.05) {
+            reverseVelocityRef.current = 0;
+            currentDirectionRef.current = 'forward';
+            syncToForward();
+          }
+        } else {
+          // ── 2. HARDWARE-ACCELERATED FORWARD SPEEDUP (Scroll Down) ──
+          // Speed scales smoothly from 1.0x to 2.5x based on scrolling velocity/sensitivity
+          if (forwardVelocityRef.current > 0.05) {
+            const targetFwdRate = Math.min(2.5, 1.0 + forwardVelocityRef.current * 1.0);
+
+            pairs.forEach(({ fwd }) => {
+              if (fwd && fwd.readyState >= 2) {
+                if (fwd.paused) fwd.play().catch(() => {});
+                fwd.playbackRate = targetFwdRate;
               }
-              video.playbackRate = targetForwardRate;
-            }
-          });
+            });
 
-          isReversingRef.current = false;
-          forwardVelocityRef.current *= Math.pow(0.18, dt);
-        }
-        // ── 3. BASE NORMAL PLAYBACK (Idle 1.0x) ──
-        else {
-          videos.forEach((video) => {
-            if (video.readyState >= 2) {
-              if (isReversingRef.current || video.paused) {
-                video.play().catch(() => {});
-                video.playbackRate = 1.0;
-              } else if (video.playbackRate !== 1.0) {
-                video.playbackRate = Math.max(1.0, video.playbackRate - dt * 4.0);
+            forwardVelocityRef.current *= Math.pow(0.04, dt);
+          } else {
+            // ── 3. BASE NORMAL PLAYBACK (Idle 1.0x Forward) ──
+            forwardVelocityRef.current = 0;
+            pairs.forEach(({ fwd }) => {
+              if (fwd && fwd.readyState >= 2) {
+                if (fwd.playbackRate !== 1.0) {
+                  fwd.playbackRate = 1.0;
+                }
+                if (fwd.paused) fwd.play().catch(() => {});
               }
-            }
-          });
-
-          isReversingRef.current = false;
-          forwardVelocityRef.current = 0;
-          reverseVelocityRef.current = 0;
+            });
+          }
         }
       }
 
@@ -370,13 +486,9 @@ export default function BackgroundVideoSystem() {
 
     animId = requestAnimationFrame(updatePlayback);
     return () => cancelAnimationFrame(animId);
-  }, [introState, triggerIntroDissolve]);
+  }, [introState, triggerIntroDissolve, syncToForward]);
 
-  // Seamless Constant-Luminance Dissolve Crossfade between Videos
-  // When target video changes: incoming video is placed on TOP at zIndex 2 with opacity 0.
-  // The current video stays solid underneath at zIndex 1 with full opacity.
-  // Once the incoming video starts rendering frames, it smoothly dissolves in over 1000ms.
-  // After 1000ms, the incoming video becomes the solid base and the old video is cleaned up.
+  // Seamless Constant-Luminance Dissolve Crossfade between Regulators
   useEffect(() => {
     if (introState === 'welcome') return;
     if (targetVideo === currentVideoSrcRef.current) return;
@@ -389,65 +501,77 @@ export default function BackgroundVideoSystem() {
     }
 
     if (activeLayer === 'A') {
-      // Layer A is currently solid and playing. Transition Layer B on TOP of Layer A.
+      // Transition Layer B on TOP of Layer A
       setLayerBVideo(targetVideo);
+      setLayerBRevVideo(targetRevVideo);
       setZIndexB(2);
       setZIndexA(1);
       setOpacityB(0); // Start hidden on top
 
-      const videoB = videoBRef.current;
-      if (videoB) {
-        videoB.src = targetVideo;
-        videoB.load();
+      const videoB_Fwd = videoB_FwdRef.current;
+      const videoB_Rev = videoB_RevRef.current;
+
+      if (videoB_Fwd) {
+        videoB_Fwd.src = targetVideo;
+        videoB_Fwd.load();
+        if (videoB_Rev) {
+          videoB_Rev.src = targetRevVideo;
+          videoB_Rev.load();
+        }
 
         let dissolved = false;
         const triggerDissolve = () => {
           if (dissolved) return;
           dissolved = true;
-          videoB.removeEventListener('playing', triggerDissolve);
-          videoB.removeEventListener('canplay', triggerDissolve);
+          videoB_Fwd.removeEventListener('playing', triggerDissolve);
+          videoB_Fwd.removeEventListener('canplay', triggerDissolve);
 
-          // Ensure browser has committed opacity 0 before starting 1000ms transition to 0.95
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               setOpacityB(0.95);
 
               transitionTimerRef.current = setTimeout(() => {
                 setActiveLayer('B');
-                setZIndexB(1); // Layer B becomes the base
+                setZIndexB(1); // Layer B becomes base
                 setOpacityA(0);
-                if (videoARef.current) {
-                  videoARef.current.pause();
-                }
+                if (videoA_FwdRef.current) videoA_FwdRef.current.pause();
+                if (videoA_RevRef.current) videoA_RevRef.current.pause();
               }, 1050);
             });
           });
         };
 
-        videoB.addEventListener('playing', triggerDissolve, { once: true });
-        videoB.addEventListener('canplay', triggerDissolve, { once: true });
-        videoB.play().catch(() => {
+        videoB_Fwd.addEventListener('playing', triggerDissolve, { once: true });
+        videoB_Fwd.addEventListener('canplay', triggerDissolve, { once: true });
+        videoB_Fwd.play().catch(() => {
           triggerDissolve();
         });
       }
     } else {
-      // Layer B is currently solid and playing. Transition Layer A on TOP of Layer B.
+      // Transition Layer A on TOP of Layer B
       setLayerAVideo(targetVideo);
+      setLayerARevVideo(targetRevVideo);
       setZIndexA(2);
       setZIndexB(1);
       setOpacityA(0); // Start hidden on top
 
-      const videoA = videoARef.current;
-      if (videoA) {
-        videoA.src = targetVideo;
-        videoA.load();
+      const videoA_Fwd = videoA_FwdRef.current;
+      const videoA_Rev = videoA_RevRef.current;
+
+      if (videoA_Fwd) {
+        videoA_Fwd.src = targetVideo;
+        videoA_Fwd.load();
+        if (videoA_Rev) {
+          videoA_Rev.src = targetRevVideo;
+          videoA_Rev.load();
+        }
 
         let dissolved = false;
         const triggerDissolve = () => {
           if (dissolved) return;
           dissolved = true;
-          videoA.removeEventListener('playing', triggerDissolve);
-          videoA.removeEventListener('canplay', triggerDissolve);
+          videoA_Fwd.removeEventListener('playing', triggerDissolve);
+          videoA_Fwd.removeEventListener('canplay', triggerDissolve);
 
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -455,24 +579,23 @@ export default function BackgroundVideoSystem() {
 
               transitionTimerRef.current = setTimeout(() => {
                 setActiveLayer('A');
-                setZIndexA(1); // Layer A becomes the base
+                setZIndexA(1); // Layer A becomes base
                 setOpacityB(0);
-                if (videoBRef.current) {
-                  videoBRef.current.pause();
-                }
+                if (videoB_FwdRef.current) videoB_FwdRef.current.pause();
+                if (videoB_RevRef.current) videoB_RevRef.current.pause();
               }, 1050);
             });
           });
         };
 
-        videoA.addEventListener('playing', triggerDissolve, { once: true });
-        videoA.addEventListener('canplay', triggerDissolve, { once: true });
-        videoA.play().catch(() => {
+        videoA_Fwd.addEventListener('playing', triggerDissolve, { once: true });
+        videoA_Fwd.addEventListener('canplay', triggerDissolve, { once: true });
+        videoA_Fwd.play().catch(() => {
           triggerDissolve();
         });
       }
     }
-  }, [targetVideo, introState, activeLayer]);
+  }, [targetVideo, targetRevVideo, introState, activeLayer]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
@@ -503,7 +626,6 @@ export default function BackgroundVideoSystem() {
             style={{
               background:
                 'radial-gradient(ellipse at center, rgba(10, 26, 15, 0.4) 0%, rgba(5, 15, 8, 0.8) 100%)',
-              backdropFilter: 'blur(0.5px)',
             }}
           />
 
@@ -578,16 +700,9 @@ export default function BackgroundVideoSystem() {
       )}
 
       {/* ── SEAMLESS HOLLYWOOD CONSTANT-LUMINANCE DISSOLVE DUAL BUFFER ── */}
-      {/* Layer A */}
-      <video
-        ref={videoARef}
-        src={layerAVideo || undefined}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        className="absolute inset-0 w-full h-full object-cover"
+      {/* Layer A (Forward + Reverse Paired Videos) */}
+      <div
+        className="absolute inset-0 w-full h-full"
         style={{
           opacity: opacityA,
           zIndex: zIndexA,
@@ -596,18 +711,39 @@ export default function BackgroundVideoSystem() {
           transition: 'opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1)',
           pointerEvents: opacityA > 0 ? 'auto' : 'none',
         }}
-      />
+      >
+        <video
+          ref={videoA_FwdRef}
+          src={layerAVideo || undefined}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            opacity: 1,
+            transform: 'translate3d(0, 0, 0)',
+          }}
+        />
+        <video
+          ref={videoA_RevRef}
+          src={layerARevVideo || undefined}
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            opacity: 0,
+            transform: 'translate3d(0, 0, 0)',
+          }}
+        />
+      </div>
 
-      {/* Layer B */}
-      <video
-        ref={videoBRef}
-        src={layerBVideo || undefined}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        className="absolute inset-0 w-full h-full object-cover"
+      {/* Layer B (Forward + Reverse Paired Videos) */}
+      <div
+        className="absolute inset-0 w-full h-full"
         style={{
           opacity: opacityB,
           zIndex: zIndexB,
@@ -616,7 +752,35 @@ export default function BackgroundVideoSystem() {
           transition: 'opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1)',
           pointerEvents: opacityB > 0 ? 'auto' : 'none',
         }}
-      />
+      >
+        <video
+          ref={videoB_FwdRef}
+          src={layerBVideo || undefined}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            opacity: 1,
+            transform: 'translate3d(0, 0, 0)',
+          }}
+        />
+        <video
+          ref={videoB_RevRef}
+          src={layerBRevVideo || undefined}
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            opacity: 0,
+            transform: 'translate3d(0, 0, 0)',
+          }}
+        />
+      </div>
 
       {/* ── DYNAMIC WHITE VIGNETTE (DAY MODE) ── */}
       <div
@@ -624,7 +788,6 @@ export default function BackgroundVideoSystem() {
         style={{
           background:
             'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.38) 50%, rgba(240, 246, 255, 0.88) 100%)',
-          backdropFilter: 'blur(0.5px)',
           opacity: Math.max(0, Math.min(1, dayFactor)),
         }}
       />
@@ -635,7 +798,6 @@ export default function BackgroundVideoSystem() {
         style={{
           background:
             'radial-gradient(ellipse at center, rgba(10, 26, 15, 0.4) 0%, rgba(5, 15, 8, 0.85) 100%)',
-          backdropFilter: 'blur(0.5px)',
           opacity: Math.max(0, Math.min(1, 1 - dayFactor)),
         }}
       />

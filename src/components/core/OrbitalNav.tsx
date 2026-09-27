@@ -86,7 +86,7 @@ const nodes: { id: OrbitNodeId; label: string; Icon: React.ComponentType<{ class
   { id: 'video', label: 'Video Editing', Icon: Film },
   { id: 'design', label: 'Graphical Works', Icon: Palette },
   { id: 'web', label: 'Website Projects', Icon: Globe },
-  { id: 'ai', label: 'AI Assistant', Icon: Sparkles },
+  { id: 'ai', label: 'ORBIT Agent', Icon: Sparkles },
   { id: 'contact', label: 'Contact', Icon: Mail },
 ];
 
@@ -96,8 +96,7 @@ export default function OrbitalNav() {
   const [showHint, setShowHint] = useState(true);
   const activeNode = useStore((s) => s.activeNode);
   const setActiveNode = useStore((s) => s.setActiveNode);
-  const timeOfDay = useStore((s) => s.timeOfDay);
-  const isDay = timeOfDay >= 7.5 && timeOfDay <= 17.5;
+  const isDay = useStore((s) => s.timeOfDay >= 7.5 && s.timeOfDay <= 17.5);
   const { playHoverTick, playClick, playPanelOpen } = useSound();
   const { radius: ORBIT_RADIUS, nodeSize: NODE_SIZE } = useOrbitalSize();
 
@@ -306,11 +305,11 @@ export default function OrbitalNav() {
   return (
     <div
       ref={containerRef}
-      className="relative select-none touch-none cursor-grab active:cursor-grabbing"
+      className="relative select-none touch-none cursor-grab active:cursor-grabbing will-change-transform"
       style={{
         width: ORBIT_RADIUS * 2 + 80,
         height: ORBIT_RADIUS * 2 + 80,
-        filter: 'drop-shadow(var(--sun-shadow-x, 0px) var(--sun-shadow-y, 14px) 26px rgba(0, 0, 0, 0.45))',
+        transform: 'translateZ(0)',
       }}
       role="radiogroup"
       aria-label="Site navigation universe"
@@ -404,9 +403,10 @@ export default function OrbitalNav() {
             >
               {/* ── 1. CONTINUOUSLY ROTATING MULTI-STAR GEAR (DAY WHITE / NIGHT OBSIDIAN) ── */}
               <div
-                className="absolute inset-0 pointer-events-none flex items-center justify-center"
+                className="absolute inset-0 pointer-events-none flex items-center justify-center will-change-transform"
                 style={{
-                  animation: 'machine-rotate 12s linear infinite',
+                  animation: 'machine-rotate 14s linear infinite',
+                  transform: 'translateZ(0)',
                 }}
               >
                 <svg
@@ -415,15 +415,15 @@ export default function OrbitalNav() {
                   style={{
                     filter: isDay
                       ? isActive
-                        ? 'drop-shadow(0 0 18px rgba(0, 102, 255, 0.95)) drop-shadow(0 0 36px rgba(0, 102, 255, 0.6)) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3))'
+                        ? 'drop-shadow(0 0 10px rgba(0, 102, 255, 0.8)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
                         : isHovered
-                        ? 'drop-shadow(0 0 14px rgba(0, 102, 255, 0.85)) drop-shadow(0 0 28px rgba(0, 102, 255, 0.5)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22))'
-                        : 'drop-shadow(0 0 12px rgba(0, 102, 255, 0.75)) drop-shadow(0 0 20px rgba(0, 102, 255, 0.4)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.18))'
+                        ? 'drop-shadow(0 0 8px rgba(0, 102, 255, 0.6))'
+                        : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))'
                       : isActive
-                      ? 'drop-shadow(0 0 12px rgba(0, 160, 60, 0.85)) drop-shadow(0 0 24px rgba(0, 90, 30, 0.6))'
+                      ? 'drop-shadow(0 0 8px rgba(0, 200, 83, 0.8)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4))'
                       : isHovered
-                      ? 'drop-shadow(0 0 10px rgba(0, 140, 50, 0.75)) drop-shadow(0 0 18px rgba(0, 70, 25, 0.5))'
-                      : 'drop-shadow(0 0 8px rgba(0, 60, 20, 0.7)) drop-shadow(0 0 14px rgba(0, 40, 15, 0.45))',
+                      ? 'drop-shadow(0 0 6px rgba(0, 200, 83, 0.6))'
+                      : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35))',
                   }}
                 >
                   <defs>
@@ -492,13 +492,13 @@ export default function OrbitalNav() {
 
               {/* ── 2. OUTLINED 3D EXTRUDED ICON ON TOP (HIGH CONTRAST) ── */}
               <div
-                className="relative z-10 flex items-center justify-center pointer-events-none transition-all duration-300"
+                className="relative z-10 flex items-center justify-center pointer-events-none transition-all duration-300 will-change-transform"
                 style={{
-                  transform: 'none',
+                  transform: 'translateZ(0)',
                   color: isDay ? (isActive ? '#0066FF' : '#0B2546') : '#00FF66',
                   filter: isDay
-                    ? 'drop-shadow(0 1px 0 #FFFFFF) drop-shadow(0 2px 1px rgba(0, 102, 255, 0.5)) drop-shadow(0 0 8px rgba(0, 102, 255, 0.75))'
-                    : 'drop-shadow(0 0 10px rgba(0, 255, 102, 0.8)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9))',
+                    ? 'drop-shadow(0 1px 1px rgba(0, 102, 255, 0.6))'
+                    : 'drop-shadow(0 0 6px rgba(0, 255, 102, 0.7))',
                 }}
               >
                 <Icon size={iconSize} strokeWidth={2.6} />
@@ -534,7 +534,7 @@ export default function OrbitalNav() {
                     animation: 'fade-in-up 0.2s ease-out',
                   }}
                 >
-                  Explore {node.label}
+                  {node.id === 'ai' ? 'ORBIT Website Agent (Online)' : `Explore ${node.label}`}
                 </span>
               )}
             </button>
