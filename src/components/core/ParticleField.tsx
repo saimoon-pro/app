@@ -14,8 +14,10 @@ export default function ParticleField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = useStore((s) => s.reducedMotion);
   const isDay = useStore((s) => s.timeOfDay >= 7.5 && s.timeOfDay <= 17.5);
+  const introCompleted = useStore((s) => s.introCompleted);
 
   useEffect(() => {
+    if (!introCompleted) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -103,9 +105,11 @@ export default function ParticleField() {
     return () => {
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', onMouseMove);
-      cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
     };
-  }, [reducedMotion, isDay]);
+  }, [reducedMotion, isDay, introCompleted]);
+
+  if (!introCompleted) return null;
 
   return (
     <canvas

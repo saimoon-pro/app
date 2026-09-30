@@ -1,16 +1,16 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Play, Clock, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Play, Clock, Filter, X, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { assetUrl } from '@/lib/assetUrl';
 import AlbumStrip, { type AlbumData } from '@/components/ui/AlbumStrip';
-
-// Helper to extract YouTube ID
-function getYouTubeId(url: string) {
-  if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-}
+import {
+  extractGoogleDriveId,
+  getGoogleDriveEmbedUrl,
+  getYouTubeId,
+  isDirectVideoUrl,
+  getVideoBestThumbnail,
+  handleMediaImageError,
+} from '@/lib/mediaHelper';
 
 // Brand SVG Icons
 function WhatsAppIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -34,13 +34,13 @@ export default function VideoPanel() {
   
   const videos = useMemo(() => {
     return content.filter(c => c.contentType === 'Video Editing').map(c => {
-      const yId = getYouTubeId(c.videoUrl);
+      const bestThumb = c.thumbnailUrl || getVideoBestThumbnail(c.videoUrl, null, assetUrl('images/thumb-video-1.jpg'));
       return {
         id: c.id,
         title: c.title,
         category: c.category,
         duration: '0:00', // Default duration
-        thumbnail: yId ? `https://img.youtube.com/vi/${yId}/hqdefault.jpg` : (c.thumbnailUrl || assetUrl('images/thumb-video-1.jpg')),
+        thumbnail: bestThumb,
         description: c.description,
         videoUrl: c.videoUrl,
         album: c.album || '',
@@ -73,20 +73,31 @@ export default function VideoPanel() {
 
   // Dynamically extract all video filters (from Google Sheet Video Filter column)
   const categories = useMemo(() => {
-    const filters = new Set<string>();
+    const filtersMap = new Map<string, string>();
 
     // Add popular default filters from Google Sheet data validation options
-    ['Motion Graphics', 'Promotional Videos', 'Documentary', 'TVC & OVC', 'AI Contents'].forEach(df => filters.add(df));
+    ['Motion Graphics', 'Promotional Videos', 'Documentary', 'TVC & OVC', 'AI Contents'].forEach(df => {
+      filtersMap.set(df.toLowerCase(), df);
+    });
 
     // Add all filters present in live video data
     videos.forEach(v => {
       const f = (v.videoFilter || v.category || '').trim();
-      if (f && f.toLowerCase() !== 'all' && f.toLowerCase() !== 'general' && f.toLowerCase() !== 'youtube') {
-        filters.add(f);
+      const lower = f.toLowerCase();
+      if (
+        f &&
+        lower !== 'all' &&
+        lower !== 'general' &&
+        lower !== 'youtube' &&
+        !lower.includes('drive')
+      ) {
+        if (!filtersMap.has(lower)) {
+          filtersMap.set(lower, f);
+        }
       }
     });
 
-    return ['All', ...Array.from(filters)];
+    return ['All', ...Array.from(filtersMap.values())];
   }, [videos]);
 
   const [activeFilter, setActiveFilter] = useState('All');
@@ -109,12 +120,6 @@ export default function VideoPanel() {
     // Filter by Album if selected
     if (selectedAlbum) {
       list = list.filter(v => (v.album || '').trim().toLowerCase() === selectedAlbum.trim().toLowerCase());
-    } else if (albums.length > 0 && activeFilter === 'All') {
-      // When no album is selected and no category filter, show unassigned videos if any
-      const unassigned = list.filter(v => !v.album || !v.album.trim());
-      if (unassigned.length > 0) {
-        list = unassigned;
-      }
     }
 
     // Filter by Video Filter / Category
@@ -130,7 +135,7 @@ export default function VideoPanel() {
     }
 
     return list;
-  }, [videos, selectedAlbum, activeFilter, albums.length]);
+  }, [videos, selectedAlbum, activeFilter]);
 
   // Register back button override when video is playing
   useEffect(() => {
@@ -217,6 +222,23 @@ export default function VideoPanel() {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute top-0 left-0 w-full h-full border-0"
+              />
+            ) : extractGoogleDriveId(playingVideo.videoUrl) ? (
+              <iframe
+                src={getGoogleDriveEmbedUrl(playingVideo.videoUrl)}
+                title={playingVideo.title}
+                allow="autoplay; fullscreen"
+                allowFullScreen
+                className="absolute top-0 left-0 w-full h-full border-0"
+              />
+            ) : isDirectVideoUrl(playingVideo.videoUrl) ? (
+              <video
+                src={playingVideo.videoUrl}
+                title={playingVideo.title}
+                controls
+                autoPlay
+                playsInline
+                className="absolute top-0 left-0 w-full h-full object-contain bg-black"
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-white bg-gray-900 gap-2">
@@ -339,6 +361,33 @@ export default function VideoPanel() {
               </div>
 
               <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+                {/* External HD / Source Link Button */}
+                {playingVideo.videoUrl && (
+                  extractGoogleDriveId(playingVideo.videoUrl) ? (
+                    <a
+                      href={playingVideo.videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm text-gray-800 dark:text-white bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-all shadow-sm cursor-pointer"
+                      title="Open video file in Google Drive"
+                    >
+                      <ExternalLink size={14} />
+                      <span className="font-semibold tracking-wide">Google Drive</span>
+                    </a>
+                  ) : getYouTubeId(playingVideo.videoUrl) ? (
+                    <a
+                      href={playingVideo.videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all shadow-sm cursor-pointer"
+                      title="Watch on YouTube"
+                    >
+                      <ExternalLink size={14} />
+                      <span className="font-semibold tracking-wide">YouTube</span>
+                    </a>
+                  ) : null
+                )}
+
                 {/* WhatsApp Connect Button */}
                 <a
                   href={whatsappUrl}
@@ -386,8 +435,13 @@ export default function VideoPanel() {
                 ({filtered.length} {filtered.length === 1 ? 'Video' : 'Videos'})
               </span>
             </span>
-          ) : albums.length > 0 && videos.some(v => !v.album) ? (
-            <span>Other Video Projects ({filtered.length})</span>
+          ) : activeFilter !== 'All' ? (
+            <span className="flex items-center gap-2 text-[#1976d2]">
+              <span>{activeFilter}</span>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-normal">
+                ({filtered.length} {filtered.length === 1 ? 'Video' : 'Videos'})
+              </span>
+            </span>
           ) : (
             <span>All Video Projects ({filtered.length})</span>
           )}
@@ -396,9 +450,9 @@ export default function VideoPanel() {
         {selectedAlbum && (
           <button
             onClick={() => setSelectedAlbum(null)}
-            className="text-xs font-mono text-[#1976d2] hover:underline cursor-pointer"
+            className="text-xs font-mono text-[#1976d2] hover:underline cursor-pointer flex items-center gap-1"
           >
-            ← View All
+            ← View All Works
           </button>
         )}
       </div>
@@ -432,6 +486,7 @@ export default function VideoPanel() {
                 decoding="async"
                 width={320}
                 height={180}
+                onError={(e) => handleMediaImageError(e, video.videoUrl, assetUrl('images/thumb-video-1.jpg'))}
               />
 
               {/* Overlay */}

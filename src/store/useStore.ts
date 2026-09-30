@@ -66,11 +66,6 @@ export const useStore = create<AppState>((set) => ({
   activeNode: null,
   setActiveNode: (node) => set({ activeNode: node }),
 
-<<<<<<< Updated upstream
-  soundEnabled: true,
-  toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
-  setSoundEnabled: (enabled: boolean) => set({ soundEnabled: enabled }),
-=======
   soundEnabled: getSavedAudioPref(),
   toggleSound: () =>
     set((state) => {
@@ -78,7 +73,10 @@ export const useStore = create<AppState>((set) => ({
       saveAudioPref(next);
       return { soundEnabled: next };
     }),
->>>>>>> Stashed changes
+  setSoundEnabled: (enabled: boolean) => {
+    saveAudioPref(enabled);
+    set({ soundEnabled: enabled });
+  },
 
   reducedMotion: false,
   setReducedMotion: (value) => set({ reducedMotion: value }),

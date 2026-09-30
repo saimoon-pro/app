@@ -3,6 +3,8 @@
  * Mapped to assets from Assets/tamplates demo/
  */
 
+import { assetUrl } from '@/lib/assetUrl';
+
 export interface CVExperience {
   company: string;
   role: string;
@@ -61,7 +63,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'developer',
     name: 'Developer & Tech Lead',
     roleCategory: 'Engineering & Tech',
-    thumbnail: '/templates/Developer.jpg',
+    thumbnail: assetUrl('templates/Developer.jpg'),
     defaultAccent: '#00FF66',
     defaultSecondary: '#00E5FF',
     description: 'High-contrast dual-column tech layout with skill telemetry and project highlight cards.',
@@ -71,7 +73,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'executive',
     name: 'Executive Leadership',
     roleCategory: 'Management',
-    thumbnail: '/templates/executive.jpg',
+    thumbnail: assetUrl('templates/executive.jpg'),
     defaultAccent: '#2563EB',
     defaultSecondary: '#1E293B',
     description: 'Prestigious corporate layout designed for C-level executives, directors, and managers.',
@@ -81,7 +83,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'creative',
     name: 'Creative Director',
     roleCategory: 'Design & Media',
-    thumbnail: '/templates/Creative.jpg',
+    thumbnail: assetUrl('templates/Creative.jpg'),
     defaultAccent: '#E11D48',
     defaultSecondary: '#F59E0B',
     description: 'Bold aesthetic layout emphasizing portfolio achievements, creative vision, and awards.',
@@ -91,7 +93,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'art-director',
     name: 'Art Director',
     roleCategory: 'Design & Visuals',
-    thumbnail: '/templates/Art directore.jpg',
+    thumbnail: assetUrl('templates/Art directore.jpg'),
     defaultAccent: '#9333EA',
     defaultSecondary: '#C084FC',
     description: 'Minimalist Swiss-style editorial typography with high visual balance and clean margins.',
@@ -101,7 +103,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'hr',
     name: 'People & HR Manager',
     roleCategory: 'Human Resources',
-    thumbnail: '/templates/hr.jpg',
+    thumbnail: assetUrl('templates/hr.jpg'),
     defaultAccent: '#0D9488',
     defaultSecondary: '#14B8A6',
     description: 'Warm, approachable corporate design highlighting organizational impact and certifications.',
@@ -111,7 +113,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'director',
     name: 'Managing Director',
     roleCategory: 'Executive',
-    thumbnail: '/templates/Director.jpg',
+    thumbnail: assetUrl('templates/Director.jpg'),
     defaultAccent: '#D97706',
     defaultSecondary: '#78350F',
     description: 'Authoritative layout with strategic milestone metrics and global team leadership sections.',
@@ -121,7 +123,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'graphics-designer',
     name: 'Senior Graphic Designer',
     roleCategory: 'Branding & UI',
-    thumbnail: '/templates/Graphics designer.jpg',
+    thumbnail: assetUrl('templates/Graphics designer.jpg'),
     defaultAccent: '#EC4899',
     defaultSecondary: '#8B5CF6',
     description: 'Vibrant showcase layout with visual competency meters and branding case studies.',
@@ -131,7 +133,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'editor',
     name: 'Lead Video Editor & Colorist',
     roleCategory: 'Post-Production',
-    thumbnail: '/templates/Editor.jpg',
+    thumbnail: assetUrl('templates/Editor.jpg'),
     defaultAccent: '#00E5FF',
     defaultSecondary: '#3B82F6',
     description: 'Cinematic cyber layout optimized for video editors, motion designers, and VFX artists.',
@@ -141,7 +143,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'executive2',
     name: 'Corporate Strategy',
     roleCategory: 'Consulting',
-    thumbnail: '/templates/executive2.jpg',
+    thumbnail: assetUrl('templates/executive2.jpg'),
     defaultAccent: '#0284C7',
     defaultSecondary: '#0F172A',
     description: 'Sleek modern business template with clean KPI bullets and executive summaries.',
@@ -151,7 +153,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'professional',
     name: 'Professional Minimalist',
     roleCategory: 'Universal ATS',
-    thumbnail: '/templates/Professional.jpg',
+    thumbnail: assetUrl('templates/Professional.jpg'),
     defaultAccent: '#10B981',
     defaultSecondary: '#334155',
     description: 'Classic monochrome ATS-optimized format trusted by Fortune 500 recruiters globally.',

@@ -12,6 +12,40 @@ const faviconPlugin = () => ({
         res.end();
         return;
       }
+      // Redirect /saimoon (without trailing slash) to /saimoon/
+      if (req.url === '/saimoon' || req.url.startsWith('/saimoon?')) {
+        const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+        res.writeHead(301, { Location: `/saimoon/${query}` });
+        res.end();
+        return;
+      }
+      // Redirect root / or empty to /saimoon/
+      if (req.url === '/' || req.url === '') {
+        res.writeHead(302, { Location: '/saimoon/' });
+        res.end();
+        return;
+      }
+      next();
+    });
+  },
+  configurePreviewServer(server: any) {
+    server.middlewares.use((req: any, res: any, next: any) => {
+      if (req.url === '/favicon.ico') {
+        res.writeHead(302, { Location: '/saimoon/favicon.png' });
+        res.end();
+        return;
+      }
+      if (req.url === '/saimoon' || req.url.startsWith('/saimoon?')) {
+        const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+        res.writeHead(301, { Location: `/saimoon/${query}` });
+        res.end();
+        return;
+      }
+      if (req.url === '/' || req.url === '') {
+        res.writeHead(302, { Location: '/saimoon/' });
+        res.end();
+        return;
+      }
       next();
     });
   }

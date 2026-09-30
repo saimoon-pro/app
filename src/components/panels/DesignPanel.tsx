@@ -3,6 +3,7 @@ import { Layers, Image, Layout } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { assetUrl } from '@/lib/assetUrl';
 import AlbumStrip, { type AlbumData } from '@/components/ui/AlbumStrip';
+import { resolveItemImageUrl, handleMediaImageError } from '@/lib/mediaHelper';
 
 type Tab = 'uiux' | 'illustration' | 'post';
 
@@ -28,7 +29,7 @@ export default function DesignPanel() {
       title: c.title,
       subtitle: c.subtitle || c.graphicsFilter || c.category,
       description: c.description,
-      image: c.thumbnailUrl || assetUrl('images/uiux-case-1.jpg'),
+      image: resolveItemImageUrl(c.websiteUrl || c.previewImageUrl, c.thumbnailUrl, assetUrl('images/uiux-case-1.jpg')),
       tags: c.tags.length > 0 ? c.tags : ['UI UX'],
       result: 'Delivered successfully',
       album: c.album || '',
@@ -39,12 +40,13 @@ export default function DesignPanel() {
   const illustrations = useMemo(() => {
     return content.filter(c => 
       c.contentType === 'Illustration' || 
-      (c.graphicsFilter && c.graphicsFilter.toLowerCase().includes('illustration'))
+      c.contentType === 'Graphic Design' ||
+      (c.graphicsFilter && (c.graphicsFilter.toLowerCase().includes('illustration') || c.graphicsFilter.toLowerCase().includes('graphic')))
     ).map(c => ({
       id: c.id,
       title: c.title,
       category: c.graphicsFilter || c.category,
-      image: c.thumbnailUrl || assetUrl('images/illustration-1.jpg'),
+      image: resolveItemImageUrl(c.websiteUrl || c.previewImageUrl, c.thumbnailUrl, assetUrl('images/illustration-1.jpg')),
       album: c.album || '',
       graphicsFilter: c.graphicsFilter || '',
     }));
@@ -58,7 +60,7 @@ export default function DesignPanel() {
       id: c.id,
       title: c.title,
       category: c.graphicsFilter || c.category,
-      image: c.thumbnailUrl || assetUrl('images/post-design-1.jpg'),
+      image: resolveItemImageUrl(c.websiteUrl || c.previewImageUrl, c.thumbnailUrl, assetUrl('images/post-design-1.jpg')),
       album: c.album || '',
       graphicsFilter: c.graphicsFilter || '',
     }));
@@ -93,37 +95,27 @@ export default function DesignPanel() {
     let list = uiuxProjects;
     if (selectedAlbum) {
       list = list.filter(item => (item.album || '').trim().toLowerCase() === selectedAlbum.trim().toLowerCase());
-    } else if (albums.length > 0) {
-      const unassigned = list.filter(item => !item.album || !item.album.trim());
-      if (unassigned.length > 0) list = unassigned;
     }
     return list;
-  }, [uiuxProjects, selectedAlbum, albums.length]);
+  }, [uiuxProjects, selectedAlbum]);
 
   const filteredIllustrations = useMemo(() => {
     let list = illustrations;
     if (selectedAlbum) {
       list = list.filter(item => (item.album || '').trim().toLowerCase() === selectedAlbum.trim().toLowerCase());
-    } else if (albums.length > 0) {
-      const unassigned = list.filter(item => !item.album || !item.album.trim());
-      if (unassigned.length > 0) list = unassigned;
     }
     return list;
-  }, [illustrations, selectedAlbum, albums.length]);
+  }, [illustrations, selectedAlbum]);
 
   const filteredPosts = useMemo(() => {
     let list = postDesigns;
     if (selectedAlbum) {
       list = list.filter(item => (item.album || '').trim().toLowerCase() === selectedAlbum.trim().toLowerCase());
-    } else if (albums.length > 0) {
-      const unassigned = list.filter(item => !item.album || !item.album.trim());
-      if (unassigned.length > 0) list = unassigned;
     }
     return list;
-  }, [postDesigns, selectedAlbum, albums.length]);
+  }, [postDesigns, selectedAlbum]);
 
   const activeCount = activeTab === 'uiux' ? filteredUiux.length : activeTab === 'illustration' ? filteredIllustrations.length : filteredPosts.length;
-  const rawList = activeTab === 'uiux' ? uiuxProjects : activeTab === 'illustration' ? illustrations : postDesigns;
 
   return (
     <div className="flex flex-col gap-6 pb-8">
@@ -171,8 +163,6 @@ export default function DesignPanel() {
                 ({activeCount} {activeCount === 1 ? 'Design' : 'Designs'})
               </span>
             </span>
-          ) : albums.length > 0 && rawList.some(i => !i.album) ? (
-            <span>Other {activeTab === 'uiux' ? 'UI/UX' : activeTab === 'illustration' ? 'Illustrations' : 'Posts'} ({activeCount})</span>
           ) : (
             <span>All {activeTab === 'uiux' ? 'UI/UX Works' : activeTab === 'illustration' ? 'Illustrations' : 'Post Designs'} ({activeCount})</span>
           )}
@@ -181,9 +171,9 @@ export default function DesignPanel() {
         {selectedAlbum && (
           <button
             onClick={() => setSelectedAlbum(null)}
-            className="text-xs font-mono text-[#00C853] hover:underline cursor-pointer"
+            className="text-xs font-mono text-[#00C853] hover:underline cursor-pointer flex items-center gap-1"
           >
-            ← View All
+            ← View All Works
           </button>
         )}
       </div>
@@ -211,6 +201,7 @@ export default function DesignPanel() {
                     className="w-full h-full object-cover transition-transform duration-500"
                     style={{ transform: hoveredItem === project.id ? 'scale(1.04)' : 'scale(1)' }}
                     loading="lazy"
+                    onError={(e) => handleMediaImageError(e, project.image, assetUrl('images/uiux-case-1.jpg'))}
                   />
                   {project.album && (
                     <div 
@@ -272,6 +263,7 @@ export default function DesignPanel() {
                     className="w-full h-full object-cover transition-transform duration-500"
                     style={{ transform: hoveredItem === item.id ? 'scale(1.05)' : 'scale(1)' }}
                     loading="lazy"
+                    onError={(e) => handleMediaImageError(e, item.image, assetUrl('images/illustration-1.jpg'))}
                   />
                 </div>
                 <div
@@ -316,6 +308,7 @@ export default function DesignPanel() {
                     className="w-full h-full object-cover transition-transform duration-500"
                     style={{ transform: hoveredItem === item.id ? 'scale(1.03)' : 'scale(1)' }}
                     loading="lazy"
+                    onError={(e) => handleMediaImageError(e, item.image, assetUrl('images/post-design-1.jpg'))}
                   />
                   <div
                     className="absolute inset-0 flex flex-col justify-end p-4 transition-opacity duration-300"
@@ -347,8 +340,9 @@ export default function DesignPanel() {
           <img
             src={lightboxImage || undefined}
             alt=""
-            className="max-w-[90%] max-h-[90%] object-contain rounded-lg"
-            style={{ boxShadow: '0 24px 64px rgba(0, 0, 0, 0.3)' }}
+            className="max-w-[90%] max-h-[90%] object-contain rounded-lg shadow-2xl"
+            style={{ boxShadow: '0 24px 64px rgba(0, 0, 0, 0.5)' }}
+            onError={(e) => handleMediaImageError(e, lightboxImage, assetUrl('images/illustration-1.jpg'))}
           />
         </div>
       )}

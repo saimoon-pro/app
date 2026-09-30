@@ -18,7 +18,7 @@ import CelestialSlider from '@/components/core/CelestialSlider';
 import LiquidRoleBadge from '@/components/core/LiquidRoleBadge';
 import gsap from 'gsap';
 import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
-import { CreateCVButton } from '@/components/cv-maker/CreateCVButton';
+import { CreateCVButton, ENABLE_CV_MAKER } from '@/components/cv-maker/CreateCVButton';
 import { AuthModal } from '@/components/cv-maker/AuthModal';
 import { LegalModal } from '@/components/cv-maker/LegalModal';
 import { CVMakerWorkspace } from '@/components/cv-maker/CVMakerWorkspace';
@@ -78,6 +78,7 @@ export default function App() {
   const reducedMotion = useStore((s) => s.reducedMotion);
   const setResumeModalOpen = useStore((s) => s.setResumeModalOpen);
   const isDay = useStore((s) => s.timeOfDay >= 7.5 && s.timeOfDay <= 17.5);
+  const introCompleted = useStore((s) => s.introCompleted);
   const { playClick, playPanelOpen } = useSound();
   useReducedMotion();
   useFirebaseAuth();
@@ -96,7 +97,7 @@ export default function App() {
     };
     load();
 
-    // Start auto polling for live Google Sheets changes every 30 seconds
+    // Start auto polling for live Google Sheets changes
     const interval = sheetsService.startPolling(async () => {
       try {
         const content = await sheetsService.getContent();
@@ -106,7 +107,30 @@ export default function App() {
       }
     });
 
-    return () => clearInterval(interval);
+    // Auto-refresh instantly whenever user switches back to this browser tab
+    const handleFocus = async () => {
+      try {
+        const fresh = await sheetsService.forceRefresh();
+        setContent(fresh);
+      } catch (e) {
+        console.warn('Auto focus refresh failed:', e);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        handleFocus();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [setContent, setIsLoading]);
 
   // Entrance animation
@@ -185,6 +209,11 @@ export default function App() {
           target.isContentEditable ||
           (typeof target.closest === 'function' && target.closest('input, textarea, [contenteditable="true"]')))
       ) {
+        return;
+      }
+
+      // Disable keyboard shortcuts until intro video has completed
+      if (!useStore.getState().introCompleted) {
         return;
       }
 
@@ -392,7 +421,7 @@ export default function App() {
               </button>
             </div>
 
-            <CreateCVButton variant="hero" className="w-full" />
+            {ENABLE_CV_MAKER && <CreateCVButton variant="hero" className="w-full" />}
           </div>
 
           {/* Scroll down indicator for mobile - App Style Pill */}
@@ -607,7 +636,7 @@ export default function App() {
                   <span>VIEW RESUME / CV</span>
                 </button>
 
-                <CreateCVButton variant="hero" />
+                {ENABLE_CV_MAKER && <CreateCVButton variant="hero" />}
               </div>
             </div>
 
@@ -633,8 +662,8 @@ export default function App() {
         </footer>
       </div>
 
-      {/* ── 3D GEAR REGULATOR AT BOTTOM CENTER ── */}
-      <GearRegulator />
+      {/* ── 3D GEAR REGULATOR AT BOTTOM CENTER (Rendered after intro finishes) ── */}
+      {introCompleted && <GearRegulator />}
 
       {/* ── TIMED RELAX LEAD CAPTURE POPUP (3 MINUTE RECURRING) ── */}
       <LeadCaptureModal />
@@ -644,10 +673,14 @@ export default function App() {
       <ContentPanel />
       <CustomCursor />
 
-      {/* ── CV MAKER MODALS & WORKSPACE ── */}
-      <AuthModal />
-      <LegalModal />
-      <CVMakerWorkspace />
+      {/* ── CV MAKER MODALS & WORKSPACE (Hidden via feature flag) ── */}
+      {ENABLE_CV_MAKER && (
+        <>
+          <AuthModal />
+          <LegalModal />
+          <CVMakerWorkspace />
+        </>
+      )}
 
       {/* ═══════════ HIDDEN SEO SEMANTIC CONTENT ═══════════ */}
       <div

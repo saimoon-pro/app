@@ -3,6 +3,12 @@ import { ExternalLink, Zap, Accessibility, Search, Shield, ChevronDown, ChevronU
 import { useStore } from '@/store/useStore';
 import { assetUrl } from '@/lib/assetUrl';
 import AlbumStrip, { type AlbumData } from '@/components/ui/AlbumStrip';
+import {
+  extractGoogleDriveId,
+  getGoogleDriveEmbedUrl,
+  resolveItemImageUrl,
+  handleMediaImageError,
+} from '@/lib/mediaHelper';
 
 function MetricGauge({ label, value, icon: Icon }: { label: string; value: number; icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }> }) {
   const radius = 22;
@@ -46,7 +52,7 @@ export default function WebPanel() {
       title: c.title,
       subtitle: c.subtitle || c.category,
       description: c.description,
-      image: c.thumbnailUrl || assetUrl('images/web-project-1.jpg'),
+      image: resolveItemImageUrl(c.websiteUrl || c.previewImageUrl, c.thumbnailUrl, assetUrl('images/web-project-1.jpg')),
       tags: c.tags.length > 0 ? c.tags : ['Web'],
       link: c.websiteUrl,
       metrics: { performance: 92, accessibility: 100, seo: 95, bestPractices: 100 },
@@ -83,15 +89,9 @@ export default function WebPanel() {
     let list = projects;
     if (selectedAlbum) {
       list = list.filter(p => (p.album || '').trim().toLowerCase() === selectedAlbum.trim().toLowerCase());
-    } else if (albums.length > 0) {
-      // If albums exist, show projects outside albums if available
-      const unassigned = list.filter(p => !p.album || !p.album.trim());
-      if (unassigned.length > 0) {
-        list = unassigned;
-      }
     }
     return list;
-  }, [projects, selectedAlbum, albums.length]);
+  }, [projects, selectedAlbum]);
 
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [hoveredProject, setHoveredProject] = useState<string | null>(null);
@@ -118,8 +118,6 @@ export default function WebPanel() {
                 ({filteredProjects.length} {filteredProjects.length === 1 ? 'Website' : 'Websites'})
               </span>
             </span>
-          ) : albums.length > 0 && projects.some(p => !p.album) ? (
-            <span>Other Website Projects ({filteredProjects.length})</span>
           ) : (
             <span>All Website Projects ({filteredProjects.length})</span>
           )}
@@ -128,9 +126,9 @@ export default function WebPanel() {
         {selectedAlbum && (
           <button
             onClick={() => setSelectedAlbum(null)}
-            className="text-xs font-mono text-[#00C853] hover:underline cursor-pointer"
+            className="text-xs font-mono text-[#00C853] hover:underline cursor-pointer flex items-center gap-1"
           >
-            ← View All
+            ← View All Works
           </button>
         )}
       </div>
@@ -155,9 +153,10 @@ export default function WebPanel() {
               <div className="relative overflow-hidden group" style={{ aspectRatio: '16/9' }}>
                 {previewingProject === project.id ? (
                   <iframe 
-                    src={project.link || undefined} 
+                    src={extractGoogleDriveId(project.link) ? getGoogleDriveEmbedUrl(project.link) : (project.link || undefined)} 
                     title={`Preview of ${project.title}`}
                     className="w-full h-full border-0 bg-white"
+                    allow="autoplay; fullscreen"
                   />
                 ) : (
                   <img
@@ -169,7 +168,7 @@ export default function WebPanel() {
                     decoding="async"
                     width={640}
                     height={360}
-                    onError={(e) => { (e.target as HTMLImageElement).src = assetUrl('images/web-project-1.jpg'); }}
+                    onError={(e) => handleMediaImageError(e, project.image, assetUrl('images/web-project-1.jpg'))}
                   />
                 )}
                 

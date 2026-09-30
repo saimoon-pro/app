@@ -10,8 +10,15 @@ export function getBaseUrl(): string {
  * Resolves a public asset path to be base-aware.
  * Converts paths like '/images/photo.jpg' to '/saimoon/images/photo.jpg' in production.
  */
-export function assetUrl(path: string): string {
+export function assetUrl(path?: string | null): string {
+  if (!path) return '';
+  if (/^(?:[a-z]+:)?\/\//i.test(path) || path.startsWith('data:') || path.startsWith('blob:')) {
+    return path;
+  }
   const base = getBaseUrl();
+  if (base !== '/' && path.startsWith(base)) {
+    return path;
+  }
   // Remove leading slash from path if base already has a trailing one
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   return `${base}${cleanPath}`;

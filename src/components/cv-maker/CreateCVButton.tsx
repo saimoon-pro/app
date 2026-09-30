@@ -4,6 +4,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useStore } from '@/store/useStore';
 import { useSound } from '@/hooks/useSound';
 
+export const ENABLE_CV_MAKER = false;
+
 interface CreateCVButtonProps {
   variant?: 'header' | 'hero' | 'mobile';
   className?: string;
@@ -13,6 +15,8 @@ export const CreateCVButton: React.FC<CreateCVButtonProps> = ({
   variant = 'header',
   className = '',
 }) => {
+  if (!ENABLE_CV_MAKER) return null;
+
   const { user, profile, openAuthModal, setWorkspaceOpen } = useAuthStore();
   const isDay = useStore((s) => s.timeOfDay >= 7.5 && s.timeOfDay <= 17.5);
   const { playClick } = useSound();

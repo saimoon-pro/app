@@ -52,10 +52,8 @@ export function markIntroSeen(): void {
  * Audio preference persistence - defaults to true (unmuted)
  */
 export function getSavedAudioPref(): boolean {
-  const val = getCookie('audio_unmuted');
-  // Always default to true (unmuted entrance)
-  if (val === null || val === undefined) return true;
-  return val === '1';
+  // Always default to sound enabled on entrance/reload
+  return true;
 }
 
 export function saveAudioPref(unmuted: boolean): void {

@@ -35,6 +35,12 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
 
 // ─── Inline Portfolio Card ───────────────────────────────────────────────────
 
+import {
+  getVideoBestThumbnail,
+  resolveItemImageUrl,
+  handleMediaImageError,
+} from '@/lib/mediaHelper';
+
 function PortfolioCard({
   item,
   onOpenPanel,
@@ -44,17 +50,10 @@ function PortfolioCard({
 }) {
   const [hovered, setHovered] = useState(false);
 
-  function getYouTubeId(url: string) {
-    if (!url) return null;
-    const m = url.match(/(?:youtu\.be\/|[?&]v=|embed\/)([^#&?]{11})/);
-    return m ? m[1] : null;
-  }
-
   const isVideo = item.contentType === 'Video Editing';
-  const ytId = isVideo ? getYouTubeId(item.videoUrl) : null;
-  const thumb = ytId
-    ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`
-    : item.thumbnailUrl || item.imageUrls?.[0] || assetUrl('images/thumb-video-1.jpg');
+  const thumb = isVideo
+    ? getVideoBestThumbnail(item.videoUrl, item.thumbnailUrl, assetUrl('images/thumb-video-1.jpg'))
+    : resolveItemImageUrl(item.websiteUrl || item.previewImageUrl, item.thumbnailUrl, assetUrl('images/thumb-video-1.jpg'));
 
   return (
     <div
@@ -85,7 +84,7 @@ function PortfolioCard({
             transition: 'all 0.3s ease',
             display: 'block',
           }}
-          onError={(e) => { (e.target as HTMLImageElement).src = assetUrl('images/thumb-video-1.jpg'); }}
+          onError={(e) => handleMediaImageError(e, thumb, assetUrl('images/thumb-video-1.jpg'))}
         />
 
         {/* Play overlay for videos */}

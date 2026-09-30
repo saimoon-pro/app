@@ -8,6 +8,7 @@ export default function CelestialLightingEngine() {
   const timeOfDay = useStore((s) => s.timeOfDay);
   const setTimeOfDay = useStore((s) => s.setTimeOfDay);
   const isAutoClock = useStore((s) => s.isAutoClock);
+  const introCompleted = useStore((s) => s.introCompleted);
 
   // Auto 24-hour real-time clock synchronization loop
   useEffect(() => {
@@ -147,6 +148,9 @@ export default function CelestialLightingEngine() {
     root.style.setProperty('--sun-shadow-y', `${shadowY.toFixed(1)}px`);
     root.style.setProperty('--sun-intensity', dayFactor.toFixed(2));
   }, [dayFactor, sunX, sunY, shadowX, shadowY]);
+
+  // Pause rendering and optical lens flare computations until intro video completes
+  if (!introCompleted) return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none z-10 overflow-hidden select-none">

@@ -7,7 +7,7 @@ import { assetUrl } from '@/lib/assetUrl';
 
 const VIDEO_CACHE_NAME = 'saimoon-video-cache-v1';
 
-const ALL_VIDEOS = [
+export const ALL_VIDEOS = [
   assetUrl('backgrounds/Intro.mp4'),
   assetUrl('backgrounds/Regulator 1_opt.mp4'),
   assetUrl('backgrounds/Regulator 2_opt.mp4'),
@@ -48,42 +48,50 @@ class VideoCacheService {
   }
 
   /**
-   * Preload critical intro video with high priority
+   * Preload critical intro video: Handled natively by HTML <video preload="auto">
+   * for zero network contention and optimal 60fps streaming.
    */
   public async preloadIntroVideo(): Promise<void> {
-    const introUrl = ALL_VIDEOS[0];
-    await this.cacheSingleVideo(introUrl, 'high');
+    // Native <video preload="auto"> handles intro streaming directly
+    return Promise.resolve();
   }
 
   /**
-   * Start progressive background queue for remaining videos during idle browser cycles
+   * Start progressive background queue for remaining videos during idle browser cycles.
+   * Only called AFTER intro has completed.
    */
   public startBackgroundPreloadQueue(): void {
     if (this.isPreloadingQueue) return;
     this.isPreloadingQueue = true;
 
-    const remainingVideos = ALL_VIDEOS.slice(1);
+    // Preload next key videos progressively
+    const nextVideos = [
+      assetUrl('backgrounds/Regulator 2_opt.mp4'),
+      assetUrl('backgrounds/Contact Screen_opt.mp4'),
+    ];
     let index = 0;
 
     const loadNext = () => {
-      if (index >= remainingVideos.length) {
+      if (index >= nextVideos.length) {
         this.isPreloadingQueue = false;
         return;
       }
 
-      const nextUrl = remainingVideos[index++];
+      const nextUrl = nextVideos[index++];
       this.cacheSingleVideo(nextUrl, 'low').finally(() => {
-        // Schedule next during idle time to avoid dropping UI/video frames
+        // Schedule next with safe 4-second spacing during idle time
         if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-          window.requestIdleCallback(() => loadNext(), { timeout: 3000 });
+          window.requestIdleCallback(() => {
+            setTimeout(loadNext, 4000);
+          }, { timeout: 8000 });
         } else {
-          setTimeout(loadNext, 1200);
+          setTimeout(loadNext, 4000);
         }
       });
     };
 
-    // Begin background preloading after intro playback has stabilized (2 seconds)
-    setTimeout(loadNext, 2000);
+    // Begin progressive background caching 4 seconds after intro is completed
+    setTimeout(loadNext, 4000);
   }
 
   /**

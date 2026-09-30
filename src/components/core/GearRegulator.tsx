@@ -24,6 +24,7 @@ const REGULATOR_NAMES: Record<number, string> = {
 export default function GearRegulator() {
   const currentRegulator = useStore((s) => s.currentRegulator);
   const setCurrentRegulator = useStore((s) => s.setCurrentRegulator);
+  const introCompleted = useStore((s) => s.introCompleted);
   const isDay = useStore((s) => s.timeOfDay >= 7.5 && s.timeOfDay <= 17.5);
   const { playHoverTick, playClick } = useSound();
 
@@ -93,6 +94,9 @@ export default function GearRegulator() {
   };
 
   const [mobileDialOpen, setMobileDialOpen] = useState(false);
+
+  // Hide regulator completely during intro video playback
+  if (!introCompleted) return null;
 
   return (
     <div

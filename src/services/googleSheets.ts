@@ -5,6 +5,13 @@
 import Papa from 'papaparse';
 import type { ContentItem, WebsiteSettings, ContactSettings } from '@/types/content';
 import { assetUrl } from '@/lib/assetUrl';
+import {
+  extractGoogleDriveId,
+  getGoogleDriveDirectImageUrl,
+  getYouTubeId,
+  getVideoBestThumbnail,
+  resolveItemImageUrl,
+} from '@/lib/mediaHelper';
 
 // Google Sheet: https://docs.google.com/spreadsheets/d/1k8JqJooRpIbHBhgQS3-lSw502nNlwyokCX3P_oE3sHA
 // const SHEET_ID = '1k8JqJooRpIbHBhgQS3-lSw502nNlwyokCX3P_oE3sHA';
@@ -23,7 +30,7 @@ let cache: {
   timestamp: 0,
 };
 
-const CACHE_TTL = 30 * 1000; // 30 seconds for live Google Sheets updates
+const CACHE_TTL = 10 * 1000; // 10 seconds for live Google Sheets updates
 
 // Placeholder data for demo
 const PLACEHOLDER_CONTENT: ContentItem[] = [
@@ -185,13 +192,42 @@ const PLACEHOLDER_CONTACT: ContactSettings = {
   footerText: 'Crafted with passion in Dhaka, Bangladesh',
 };
 
+
+
+function getRowField(row: any, ...fieldNames: string[]): string {
+  if (!row) return '';
+  for (const name of fieldNames) {
+    if (row[name] !== undefined && row[name] !== null) {
+      const val = String(row[name]).trim();
+      if (val !== '') return val;
+    }
+  }
+  const rowKeys = Object.keys(row);
+  for (const name of fieldNames) {
+    const target = name.trim().toLowerCase();
+    const foundKey = rowKeys.find(k => k.trim().toLowerCase() === target);
+    if (foundKey && row[foundKey] !== undefined && row[foundKey] !== null) {
+      const val = String(row[foundKey]).trim();
+      if (val !== '') return val;
+    }
+  }
+  return '';
+}
+
 class GoogleSheetsService {
   private async fetchSheet(): Promise<ContentItem[]> {
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/1lkc5llkD_zYwDbFTgn-YV9ITotvSu81zlC9sGiE5dwA/export?format=csv';
+    const timestamp = Date.now();
+    const primaryUrl = `https://docs.google.com/spreadsheets/d/1lkc5llkD_zYwDbFTgn-YV9ITotvSu81zlC9sGiE5dwA/export?format=csv&_t=${timestamp}`;
+    const fallbackUrl = `https://docs.google.com/spreadsheets/d/1lkc5llkD_zYwDbFTgn-YV9ITotvSu81zlC9sGiE5dwA/gviz/tq?tqx=out:csv&sheet=Contents&_t=${timestamp}`;
+    
     try {
-      const response = await fetch(csvUrl);
+      let response = await fetch(primaryUrl, { cache: 'no-store' });
       if (!response.ok) {
-        console.error('Failed to fetch CSV', response.status);
+        console.warn('Primary Google Sheets export endpoint failed, trying fallback gviz endpoint...');
+        response = await fetch(fallbackUrl, { cache: 'no-store' });
+      }
+      if (!response.ok) {
+        console.error('Failed to fetch CSV from both endpoints', response.status);
         return PLACEHOLDER_CONTENT;
       }
       const csvText = await response.text();
@@ -205,109 +241,218 @@ class GoogleSheetsService {
       let order = 1;
       
       parsed.data.forEach((row: any, index: number) => {
-        const rawType = (row['Type'] || '').trim();
-        const rawStatus = (row['Status'] || '').trim();
-        const rawLinkType = (row['Link Type'] || '').trim();
-        const rawVideoFilter = (row['Video Filter'] || row['Video Filter '] || row['video filter'] || row['VideoFilter'] || row['Filter'] || row['Filter '] || '').trim();
-        const rawGraphicsFilter = (row['Graphics Filter'] || row['Graphics Filter '] || row['graphics filter'] || row['GraphicsFilter'] || '').trim();
-        const rawAlbum = (row['Album'] || row['Album '] || row['album'] || row['Album Name'] || '').trim();
-        
-        if (rawStatus.toLowerCase() !== 'update') {
+        const rawType = getRowField(row, 'Type');
+        const rawStatus = getRowField(row, 'Status');
+        const rawLinkType = getRowField(row, 'Link Type');
+        const rawVideoFilter = getRowField(row, 'Video Filter', 'VideoFilter', 'Filter');
+        const rawGraphicsFilter = getRowField(row, 'Graphics Filter', 'GraphicsFilter');
+        const rawAlbum = getRowField(row, 'Album', 'Album Name');
+        const title = getRowField(row, 'Title') || `Item ${index + 1}`;
+        const description = getRowField(row, 'Description');
+        const link = getRowField(row, 'Link');
+        const thumbnail = getRowField(row, 'Thumbnail');
+
+        // Check status: accept 'update', 'uploaded', 'published', 'active', 'yes', 'show'
+        const statusLower = rawStatus.toLowerCase();
+        if (statusLower && !['update', 'uploaded', 'published', 'active', 'yes', 'show'].includes(statusLower)) {
+          return;
+        }
+        if (!statusLower && !link && !title) {
           return;
         }
 
-        let contentType: any = 'Video Editing';
-        if (rawType.toLowerCase() === 'video') {
-          contentType = 'Video Editing';
-        } else if (rawType.toLowerCase() === 'website') {
+        // Section / Content Type Classification
+        const typeLower = rawType.toLowerCase();
+        const videoFilterLower = rawVideoFilter.toLowerCase();
+        const graphicsFilterLower = rawGraphicsFilter.toLowerCase();
+
+        let contentType: ContentItem['contentType'] = 'Video Editing';
+
+        const isExplicitWebsite = 
+          typeLower.includes('web') || 
+          typeLower.includes('site') || 
+          typeLower.includes('app') || 
+          typeLower.includes('software');
+
+        const isExplicitUIUX = 
+          typeLower.includes('ui') || 
+          typeLower.includes('ux') || 
+          graphicsFilterLower.includes('ui') || 
+          graphicsFilterLower.includes('ux');
+
+        const isExplicitPost = 
+          typeLower.includes('post') || 
+          typeLower.includes('static') || 
+          typeLower.includes('social') || 
+          graphicsFilterLower.includes('post') || 
+          graphicsFilterLower.includes('static');
+
+        const isExplicitIllustration = 
+          typeLower.includes('image') || 
+          typeLower.includes('illustration') || 
+          typeLower.includes('graphic') || 
+          typeLower.includes('art') || 
+          typeLower.includes('draw') || 
+          typeLower.includes('vector') || 
+          graphicsFilterLower.includes('illustration') || 
+          graphicsFilterLower.includes('graphic');
+
+        const isExplicitVideo = 
+          typeLower.includes('video') || 
+          typeLower.includes('reel') || 
+          typeLower.includes('motion') || 
+          typeLower.includes('tvc') || 
+          typeLower.includes('ovc') || 
+          typeLower.includes('film') || 
+          typeLower.includes('documentary') || 
+          videoFilterLower.length > 0 || 
+          getYouTubeId(link) !== null;
+
+        if (isExplicitWebsite) {
           contentType = 'Website Project';
-        } else if (
-          rawType.toLowerCase() === 'ui ux' || 
-          rawType.toLowerCase() === 'ui/ux' || 
-          rawGraphicsFilter.toLowerCase() === 'ui ux' || 
-          rawGraphicsFilter.toLowerCase() === 'ui/ux'
-        ) {
+        } else if (isExplicitUIUX) {
           contentType = 'UIUX Design';
-        } else if (
-          rawType.toLowerCase() === 'images' || 
-          rawType.toLowerCase() === 'illustration' || 
-          rawGraphicsFilter.toLowerCase() === 'illustration'
-        ) {
-          contentType = 'Illustration';
-        } else if (
-          rawType.toLowerCase() === 'post' || 
-          rawGraphicsFilter.toLowerCase().includes('static') || 
-          rawGraphicsFilter.toLowerCase().includes('post')
-        ) {
+        } else if (isExplicitPost) {
           contentType = 'Post Design';
-        }
-        
-        const title = (row['Title '] || row['Title'] || '').trim() || `Item ${index + 1}`;
-        const description = (row['Description '] || row['Description'] || '').trim();
-        const link = (row['Link'] || '').trim();
-        let thumbnail = (row['Thumbnail '] || row['Thumbnail'] || '').trim();
-        
-        // Handle fallback thumbnails
-        if (!thumbnail || thumbnail.toLowerCase() === 'thumbnail') {
-            if (contentType === 'Video Editing') thumbnail = assetUrl('images/thumb-video-1.jpg');
-            else if (contentType === 'Website Project') thumbnail = assetUrl('images/web-project-1.jpg');
-            else thumbnail = assetUrl('images/illustration-1.jpg');
-        } else if (thumbnail.includes('drive.google.com/file/d/')) {
-            // Convert Google Drive view links to direct image links
-            const match = thumbnail.match(/\/file\/d\/([^\/]+)/);
-            if (match && match[1]) {
-                thumbnail = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-            }
-        } else if (thumbnail.includes('drive.google.com/open?id=')) {
-            const match = thumbnail.match(/id=([^&]+)/);
-            if (match && match[1]) {
-                thumbnail = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-            }
+        } else if (isExplicitIllustration) {
+          contentType = 'Illustration';
+        } else if (isExplicitVideo) {
+          contentType = 'Video Editing';
+        } else if (graphicsFilterLower.length > 0) {
+          if (graphicsFilterLower.includes('ui') || graphicsFilterLower.includes('ux')) {
+            contentType = 'UIUX Design';
+          } else if (graphicsFilterLower.includes('post') || graphicsFilterLower.includes('static')) {
+            contentType = 'Post Design';
+          } else {
+            contentType = 'Illustration';
+          }
+        } else {
+          // Fallback based on link structure
+          if (getYouTubeId(link)) {
+            contentType = 'Video Editing';
+          } else if (typeLower === 'website') {
+            contentType = 'Website Project';
+          } else {
+            contentType = 'Video Editing';
+          }
         }
 
+        // Resolving Thumbnail and Media URLs
+        let finalThumbnail = '';
+        let previewImageUrl = '';
         let videoUrl = '';
         let websiteUrl = '';
-        
+
         if (contentType === 'Video Editing') {
           videoUrl = link;
+          // Extract the video's best frame if no explicit custom thumbnail is set
+          finalThumbnail = getVideoBestThumbnail(videoUrl, thumbnail, assetUrl('images/thumb-video-1.jpg'));
+          
+          const driveId = extractGoogleDriveId(videoUrl);
+          if (driveId) {
+            previewImageUrl = getGoogleDriveDirectImageUrl(driveId);
+          }
         } else if (contentType === 'Website Project') {
           websiteUrl = link;
+          finalThumbnail = resolveItemImageUrl(link, thumbnail, assetUrl('images/web-project-1.jpg'));
+          const driveId = extractGoogleDriveId(link) || extractGoogleDriveId(thumbnail);
+          if (driveId) {
+            previewImageUrl = getGoogleDriveDirectImageUrl(driveId);
+          }
         } else {
+          // Graphical Works (UIUX, Illustration, Post Design)
           websiteUrl = link;
+          const defaultAsset = 
+            contentType === 'UIUX Design' ? assetUrl('images/uiux-case-1.jpg') :
+            contentType === 'Post Design' ? assetUrl('images/post-design-1.jpg') :
+            assetUrl('images/illustration-1.jpg');
+            
+          finalThumbnail = resolveItemImageUrl(link, thumbnail, defaultAsset);
+          const driveId = extractGoogleDriveId(link) || extractGoogleDriveId(thumbnail);
+          if (driveId) {
+            previewImageUrl = getGoogleDriveDirectImageUrl(driveId);
+          }
         }
 
-        let category = rawLinkType || 'General';
-        if (contentType === 'Video Editing' && rawVideoFilter) {
-          category = rawVideoFilter;
+        // Category & Subtitle determination
+        let category = '';
+        if (contentType === 'Video Editing') {
+          if (rawVideoFilter) {
+            category = rawVideoFilter;
+          } else {
+            // Intelligent category from title (preventing 'gd drive' pill in UI)
+            const titleLower = title.toLowerCase();
+            if (titleLower.includes('reel') || titleLower.includes('short')) {
+              category = 'Reels & Shorts';
+            } else if (titleLower.includes('doc') || titleLower.includes('documentary')) {
+              category = 'Documentary';
+            } else if (titleLower.includes('motion') || titleLower.includes('animation') || titleLower.includes('graphic')) {
+              category = 'Motion Graphics';
+            } else if (titleLower.includes('ai') || titleLower.includes('automation')) {
+              category = 'AI Contents';
+            } else if (titleLower.includes('tvc') || titleLower.includes('ovc') || titleLower.includes('commercial')) {
+              category = 'TVC & OVC';
+            } else if (titleLower.includes('promo') || titleLower.includes('brand')) {
+              category = 'Promotional Videos';
+            } else {
+              category = 'Commercial Videos';
+            }
+          }
         } else if (rawGraphicsFilter) {
           category = rawGraphicsFilter;
+        } else if (contentType === 'UIUX Design') {
+          category = 'UI/UX';
+        } else if (contentType === 'Post Design') {
+          category = 'Statics';
+        } else if (contentType === 'Illustration') {
+          category = 'Illustration';
+        } else {
+          category = (rawLinkType && !rawLinkType.toLowerCase().includes('drive')) ? rawLinkType : 'General';
         }
+
+        const subtitle = 
+          rawVideoFilter || 
+          rawGraphicsFilter || 
+          (category !== 'gd drive' && category !== 'youtube' ? category : '') ||
+          (contentType === 'Video Editing' ? 'Video Project' : contentType);
 
         items.push({
           id: `sheet-${items.length}-${index}`,
           contentType: contentType,
           category: category,
           title: title,
-          subtitle: rawVideoFilter || rawGraphicsFilter || rawLinkType || category,
+          subtitle: subtitle,
           description: description,
-          thumbnailUrl: thumbnail,
-          previewImageUrl: '',
+          thumbnailUrl: finalThumbnail,
+          previewImageUrl: previewImageUrl,
           videoUrl: videoUrl,
           websiteUrl: websiteUrl,
           caseStudyUrl: '',
-          tags: [rawVideoFilter, rawGraphicsFilter, rawLinkType, rawType].filter(Boolean),
+          tags: [category, rawVideoFilter, rawGraphicsFilter, rawAlbum, rawType].filter(
+            (t): t is string => Boolean(t && !t.toLowerCase().includes('drive'))
+          ),
           featured: true,
           uploadStatus: 'Uploaded',
           displayOrder: order++,
           uploadDate: new Date().toISOString(),
           notes: '',
           album: rawAlbum,
-          videoFilter: rawVideoFilter,
-          graphicsFilter: rawGraphicsFilter,
+          videoFilter: rawVideoFilter || (contentType === 'Video Editing' ? category : ''),
+          graphicsFilter: rawGraphicsFilter || (contentType !== 'Video Editing' && contentType !== 'Website Project' ? category : ''),
         });
       });
       
       if (items.length > 0) {
+        // If the sheet doesn't have design items yet, keep placeholder design items
+        const hasDesignItems = items.some(
+          i => i.contentType === 'UIUX Design' || i.contentType === 'Illustration' || i.contentType === 'Post Design'
+        );
+        if (!hasDesignItems) {
+          const designPlaceholders = PLACEHOLDER_CONTENT.filter(
+            p => p.contentType === 'UIUX Design' || p.contentType === 'Illustration' || p.contentType === 'Post Design'
+          );
+          items.push(...designPlaceholders);
+        }
         return items;
       }
       return PLACEHOLDER_CONTENT;
@@ -337,6 +482,11 @@ class GoogleSheetsService {
     cache.content = content;
     cache.timestamp = now;
     return content;
+  }
+
+  async forceRefresh(): Promise<ContentItem[]> {
+    cache.timestamp = 0;
+    return this.getContent();
   }
 
   async getContentByType(type: ContentItem['contentType']): Promise<ContentItem[]> {

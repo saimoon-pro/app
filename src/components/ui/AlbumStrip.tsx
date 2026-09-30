@@ -54,6 +54,8 @@ export function getAlbumBadge(name: string) {
   return { flag: '📁', label: 'Collection' };
 }
 
+import { handleMediaImageError } from '@/lib/mediaHelper';
+
 // Engaging Visual Collage of Album Items
 function AlbumThumbnailCollage({ thumbnails, name }: { thumbnails: string[]; name: string }) {
   const validThumbs = thumbnails.filter((t) => typeof t === 'string' && t.trim().length > 0);
@@ -76,6 +78,7 @@ function AlbumThumbnailCollage({ thumbnails, name }: { thumbnails: string[]; nam
           alt={name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
+          onError={(e) => handleMediaImageError(e, validThumbs[0])}
         />
       </div>
     );
@@ -90,12 +93,14 @@ function AlbumThumbnailCollage({ thumbnails, name }: { thumbnails: string[]; nam
           alt={`${name} 1`}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          onError={(e) => handleMediaImageError(e, validThumbs[0])}
         />
         <img
           src={validThumbs[1]}
           alt={`${name} 2`}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          onError={(e) => handleMediaImageError(e, validThumbs[1])}
         />
       </div>
     );
@@ -111,6 +116,7 @@ function AlbumThumbnailCollage({ thumbnails, name }: { thumbnails: string[]; nam
             alt={`${name} main`}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => handleMediaImageError(e, validThumbs[0])}
           />
         </div>
         <div className="grid grid-rows-2 gap-0.5 h-full overflow-hidden">
@@ -119,12 +125,14 @@ function AlbumThumbnailCollage({ thumbnails, name }: { thumbnails: string[]; nam
             alt={`${name} 2`}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => handleMediaImageError(e, validThumbs[1])}
           />
           <img
             src={validThumbs[2]}
             alt={`${name} 3`}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => handleMediaImageError(e, validThumbs[2])}
           />
         </div>
       </div>
@@ -139,18 +147,21 @@ function AlbumThumbnailCollage({ thumbnails, name }: { thumbnails: string[]; nam
         alt={`${name} 1`}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         loading="lazy"
+        onError={(e) => handleMediaImageError(e, validThumbs[0])}
       />
       <img
         src={validThumbs[1]}
         alt={`${name} 2`}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         loading="lazy"
+        onError={(e) => handleMediaImageError(e, validThumbs[1])}
       />
       <img
         src={validThumbs[2]}
         alt={`${name} 3`}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         loading="lazy"
+        onError={(e) => handleMediaImageError(e, validThumbs[2])}
       />
       <div className="relative w-full h-full overflow-hidden">
         <img
@@ -158,6 +169,7 @@ function AlbumThumbnailCollage({ thumbnails, name }: { thumbnails: string[]; nam
           alt={`${name} 4`}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          onError={(e) => handleMediaImageError(e, validThumbs[3])}
         />
         {count > 4 && (
           <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px] flex items-center justify-center">
